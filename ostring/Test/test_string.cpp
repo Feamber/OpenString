@@ -97,19 +97,25 @@ namespace test_string
 			string str_ctor_supplement(L"𪚥😁");
 			string str_ctor_supplement_2(L"𪚥");
 
-			Assert::AreEqual(str_default_ctor.length(), 0u);
-			Assert::IsTrue(str_default_ctor.is_empty());
-			Assert::AreEqual(str_empty_ansi.length(), 0u);
-			Assert::AreEqual(str_empty_wide.length(), 0u);
-			Assert::AreEqual(str_ctor_ansi.length(), 6u);
-			Assert::IsFalse(str_ctor_ansi.is_empty());
-			Assert::AreEqual(str_assign.length(), 6u);
-			Assert::AreEqual(str_ctor_wide.length(), 6u);
-			Assert::AreEqual(str_ctor_ansi_another.length(), 5u);
-			Assert::AreEqual(str_ctor_hans.length(), 1u);
-			Assert::AreEqual(str_ctor_hans_another.length(), 2u);
-			Assert::AreEqual(str_ctor_supplement.length(), 2u);
-			Assert::AreEqual(str_ctor_supplement_2.length(), 1u);
+			constexpr size_t s0 = 0;
+			constexpr size_t s1 = 1;
+			constexpr size_t s2 = 2;
+			constexpr size_t s5 = 5;
+			constexpr size_t s6 = 6;
+
+			Assert::AreEqual	(str_default_ctor.length(),			s0);
+			Assert::IsTrue		(str_default_ctor.is_empty());
+			Assert::AreEqual	(str_empty_ansi.length(),			s0);
+			Assert::AreEqual	(str_empty_wide.length(),			s0);
+			Assert::AreEqual	(str_ctor_ansi.length(),			s6);
+			Assert::IsFalse		(str_ctor_ansi.is_empty());
+			Assert::AreEqual	(str_assign.length(),				s6);
+			Assert::AreEqual	(str_ctor_wide.length(),			s6);
+			Assert::AreEqual	(str_ctor_ansi_another.length(),	s5);
+			Assert::AreEqual	(str_ctor_hans.length(),			s1);
+			Assert::AreEqual	(str_ctor_hans_another.length(),	s2);
+			Assert::AreEqual	(str_ctor_supplement.length(),		s2);
+			Assert::AreEqual	(str_ctor_supplement_2.length(),	s1);
 		}
 	};
 
