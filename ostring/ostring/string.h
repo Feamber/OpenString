@@ -23,9 +23,11 @@ public:
 	string& operator=(string&&) = default;
 	string& operator=(const string&) = default;
 
-	// initializes a new instance of the string class to the value 
+	// Initializes a new instance of the string class to the value 
 	// indicated by a specified pointer to an array of characters,
-	// and encoding
+	// and how it's encoded.
+	// @param src: the c-style char.
+	// @param ec: how it's encoded.
 	string(const ansi_char* src, encoding ec = encoding::ansi)
 		:_surrogate_pair_count(0)
 	{
@@ -62,6 +64,11 @@ public:
 		append_terminal();
 	}
 
+	// Initializes a new instance of the string class to the value 
+	// indicated by a specified pointer to an array of wide characters,
+	// and the endian it is.
+	// @param src: the c-style wide char.
+	// @param ec: what's the endian it is.
 	string(const wide_char* src, endian e = endian::big)
 		:_surrogate_pair_count(0)
 	{
@@ -72,14 +79,22 @@ public:
 		calculate_surrogate();
 	}
 
-	// ansi as well as BMP can trans to wide char without side effect
+	// Initializes a new instance of the string class with multi count of specific char.
+	// cccc..[count]..cccc
+	// @param c: the char used to init.
+	// @param count: how may c.
 	string(const wide_char c, size_t count = 1)
 		:_surrogate_pair_count(0)
 	{
+		// ansi as well as BMP in first plane can trans to wide char without side effect
 		_wa.resize(count, c); 
 		append_terminal();
 	}
 
+	// Initializes a new instance of the string class with multi count of specific string.
+	// strstrstr..[count]..strstr
+	// @param str: the string used to init.
+	// @param count: how may str.
 	string(const string& str, size_t count)
 	{
 		_wa.reserve(str.length() * count + 1);
@@ -87,23 +102,25 @@ public:
 			operator+=(str);
 	}
 
-	// get how may characters in this string
+	// @return: the length of string.
 	size_t length() const
 	{
 		const size_t length_with_0 = _wa.size() - _surrogate_pair_count;
 		return length_with_0 > 0 ? length_with_0 - 1 : length_with_0;
 	}
 
-	// whether this string is empty
+	// @return: whether this string is empty.
 	bool is_empty() const
 	{
 		return length() == 0;
 	}
 
-	// compare two strings
-	// return 1 if this is greater than rhs
-	// return 0 if this is equal to rhs
-	// return -1 if this is less than rhs
+	// Compare two strings.
+	// @param rhs: another string.
+	// @return:
+	// return 1 if this is greater than rhs.
+	// return 0 if this is equal to rhs.
+	// return -1 if this is less than rhs.
 	int string_compare(const string& rhs) const
 	{
 		const size_t lhs_length = length();
@@ -115,37 +132,58 @@ public:
 		return cmp;
 	}
 
+	// Are they totally equal?
+	// @param rhs: another string.
+	// @return: true if totally equal.
 	bool operator==(const string& rhs) const
 	{
 		return string_compare(rhs) == 0;
 	}
 
+	// Are they different?
+	// @param rhs: another string.
+	// @return: true if different.
 	bool operator!=(const string& rhs) const
 	{
 		return string_compare(rhs) != 0;
 	}
 
+	// Compare with unicode value.
+	// @param rhs: another string.
+	// @return: true if less than rhs.
 	bool operator<(const string& rhs) const
 	{
 		return string_compare(rhs) < 0;
 	}
-
+	
+	// Compare with unicode value.
+	// @param rhs: another string.
+	// @return: true if less than or equal to rhs.
 	bool operator<=(const string& rhs) const
 	{
 		return string_compare(rhs) <= 0;
 	}
 
+	// Compare with unicode value.
+	// @param rhs: another string.
+	// @return: true if greater thsn rhs.
 	bool operator>(const string& rhs) const
 	{
 		return string_compare(rhs) > 0;
 	}
 
+	// Compare with unicode value.
+	// @param rhs: another string.
+	// @return: true if greater than or equal to rhs.
 	bool operator>=(const string& rhs) const
 	{
 		return string_compare(rhs) >= 0;
 	}
 
-	// append back
+	// Append back.
+	// string("this") + "rhs" == string("thisrhs")
+	// @param rhs: append rhs back this string.
+	// @return: ref this string.
 	string& operator+=(const string& rhs)
 	{
 		auto it_target = _wa.cend() - (_wa.size() ? 1 : 0);
@@ -155,6 +193,10 @@ public:
 		return *this;
 	}
 
+	// Append back, get a new string instance without modify this string.
+	// string("this") + "rhs" == string("thisrhs")
+	// @param rhs: append rhs back this string.
+	// @return: a new result string instance.
 	string operator+(const string& rhs)
 	{
 		string str = *this;
@@ -162,6 +204,11 @@ public:
 		return str;
 	}
 
+	// Get a new substring from specific position with specific size
+	// string("abcdefg").substring(2, 3) == string("cde");
+	// @param from: from where to start, 0 if from begin.
+	// @param size: how many chars you want.
+	// @return: the new substring instance
 	string substring(size_t from, size_t size = SIZE_MAX) const
 	{
 		string ret;
@@ -185,6 +232,11 @@ public:
 		return ret;
 	}
 
+	// Get the index of specific string
+	// string("abcdefg").index_of("cde") == 2;
+	// @param substr: substring to search.
+	// @param size: how many chars you want.
+	// @return: the new substring instance
 	size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const
 	{
 		const size_t index = position_codepoint_to_index(from);
@@ -198,12 +250,6 @@ public:
 	{
 		// @TODO
 		return SIZE_MAX;
-	}
-
-	string replace(const string& src, const string& dest) const
-	{
-		// @TODO
-		return string();
 	}
 
 	string format(...) const
