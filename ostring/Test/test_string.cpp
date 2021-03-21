@@ -207,6 +207,17 @@ namespace test_string
 				Assert::AreEqual<size_t>(2, str_src1.index_of(str_to_find2, 2, 2));
 			}
 		}
+		TEST_METHOD(string_replace)
+		{
+			using namespace ostr;
+
+			{
+				string str_src1("1231234");
+
+				Assert::IsTrue(str_src1.replace_new("123", L"1234") == "123412344");
+				Assert::AreEqual<size_t>(2, str_src1.replace(L"123", "1234"));
+			}
+		}
 	};
 
 

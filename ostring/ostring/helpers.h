@@ -3,6 +3,7 @@
 #include "char_types.h"
 #include <iterator>
 #include <string>
+#include <vector>
 #include <functional>
 
 _NS_OSTR_BEGIN
@@ -442,6 +443,18 @@ namespace helper
 				qt_string_compare().
 			*/
 			return string_search_hash(src, src_size, substr, substr_size, cs);
+		}
+	}
+
+	namespace vector
+	{
+		template<typename T>
+		void adjust_size(std::vector<T>& vec, size_t where, int size_delta)
+		{
+			if (size_delta > 0)
+				vec.insert(vec.cbegin() + where, size_delta, 0);
+			else if (size_delta < 0)
+				vec.erase(vec.cbegin() + where, vec.cbegin() + where - size_delta);
 		}
 	}
 

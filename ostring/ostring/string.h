@@ -235,27 +235,63 @@ public:
 	// Get the index of specific string
 	// string("abcdefg").index_of("cde") == 2;
 	// @param substr: substring to search.
-	// @param size: how many chars you want.
+	// @param from: from where to search.
+	// @param length: how many length in this string to search, that means, searching from "from" to "from + length".
 	// @return: the new substring instance
 	size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const
 	{
 		const size_t index = position_codepoint_to_index(from);
 		const size_t real_size = std::min(length, _wa.size() - index);
-		return position_index_to_codepoint(helper::string::string_search(_wa.data() + index, real_size, substr._wa.data(), substr.length(), cs) + index);
+		const size_t index_found = helper::string::string_search(_wa.data() + index, real_size, substr._wa.data(), substr.length(), cs);
+		if (index_found == SIZE_MAX) return SIZE_MAX;
+		return position_index_to_codepoint(index_found + index);
 	}
 
-	// replace the substring which match param src into dest
+	// Returns a new string in which all occurrences of a specified string in the current instance
+	// are replaced with another specified string.
 	// @return: how many substrings have been replaced
-	size_t replace(const string& src, const string& dest)
+	size_t replace(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive)
 	{
-		// @TODO
-		return SIZE_MAX;
+		// src should NOT be empty!
+		if (src.is_empty()) return SIZE_MAX; // ASSERT!
+
+		size_t len = _wa.size();
+		size_t index = 0;
+		index= index_of(src, index, SIZE_MAX, cs);
+
+		size_t cnt = 0;
+		while (index < len)
+		{
+			const int size_delta = std::max(1, (int)dest._wa.size()) - std::max(1, (int)src._wa.size());
+			helper::vector::adjust_size(_wa, index, size_delta);
+			for (size_t i = 0; i < dest._wa.size() - 1; ++i)
+				_wa[index + i] = dest._wa[i];
+			// split into two steps beware of negative number when use type size_t
+			_surrogate_pair_count += dest._surrogate_pair_count;
+			_surrogate_pair_count -= src._surrogate_pair_count;
+			++cnt;
+			index += src._wa.size() - 1;
+			index = index_of(src, index, SIZE_MAX, cs);
+		}
+		return cnt;
+	}
+
+	string replace_new(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive) const
+	{
+		string new_inst(*this);
+		new_inst.replace(src, dest, cs);
+		return new_inst;
 	}
 
 	string format(...) const
 	{
 		// @TODO
 		return string();
+	}
+
+	const char16_t* to_utf16() const
+	{
+		return _wa.data();
 	}
 
 private:
