@@ -214,6 +214,27 @@ public:
 		return str;
 	}
 
+	// Append back.
+	// @param rhs: append rhs back this string.
+	// @return: ref this string.
+	template<typename T>
+	string& operator+=(T rhs)
+	{
+		operator+=(to_string(rhs));
+		return *this;
+	}
+
+	// Append back, get a new string instance without modify this string.
+	// @param rhs: append rhs back this string.
+	// @return: a new result string instance.
+	template<typename T>
+	string operator+(T rhs)
+	{
+		string str = *this;
+		str += rhs;
+		return str;
+	}
+
 	// Get a new substring from specific position with specific size
 	// string("abcdefg").substring(2, 3) == string("cde");
 	// @param from: from where to start, 0 if from begin.
@@ -307,51 +328,9 @@ public:
 		return new_inst;
 	}
 
-	/*template<typename...Args>
-	string format(Args...args) const
-	{
-		constexpr size_t n = sizeof...(Args);
-		string argstrings[n];
-
-		args_to_strings(argstrings, args...);
-
-		string str(*this);
-
-		size_t index_left = str.index_of("{");
-		while (index_left < str._wa.size())
-		{
-			size_t index_right = str.index_of("}", index_left);
-			size_t index_placeholder = helper::string::to_uint(str._wa.data() + index_left + 1, index_right - index_left - 1);
-
-			str.replace(index_left, index_right - index_left + 1, argstrings[index_placeholder]);
-
-			index_left = str.index_of("{", index_left);
-		}
-
-		return str;
-	}*/
-
 	template<typename...Args>
 	static string format(const string& fmt, Args...args)
 	{
-		/*constexpr size_t n = sizeof...(Args);
-		string argstrings[n];
-
-		args_to_strings(argstrings, args...);
-
-		string str(fmt);
-
-		size_t index_left = str.index_of("{");
-		while (index_left < str._wa.size())
-		{
-			size_t index_right = str.index_of("}", index_left);
-			size_t index_placeholder = helper::string::to_uint(str._wa.data() + index_left + 1, index_right - index_left - 1);
-
-			str.replace(index_left, index_right - index_left + 1, argstrings[index_placeholder]);
-
-			index_left = str.index_of("{", index_left);
-		}*/
-
 		return format(fmt.to_utf16(), args...);
 	}
 

@@ -121,15 +121,27 @@ namespace test_string
 		{
 			using namespace ostr;
 
-			const char char_wo[] = { 0xe6i8, 0x88i8, 0x91i8, 0x00i8 };
-			string str_wo(char_wo, encoding::utf8);
-			string str_ai(L"😘");
-			string str_ni(L"ni");
+			{
+				const char char_wo[] = { 0xe6i8, 0x88i8, 0x91i8, 0x00i8 };
+				string str_wo(char_wo, encoding::utf8);
+				string str_ai(L"😘");
+				string str_ni(L"ni");
 
-			string combine = str_wo + str_ai + str_ai + str_ni;
-			string correct = L"我😘😘ni";
+				string combine = str_wo + str_ai + str_ai + str_ni;
+				string correct = L"我😘😘ni";
 
-			Assert::IsTrue(combine == correct);
+				Assert::IsTrue(combine == correct); 
+			}
+			{
+				string str_fmt(L"数字：");
+
+				Assert::IsTrue((str_fmt + 100) == L"数字：100");
+			}
+			{
+				string str_fmt(L"数字：");
+				// why 6 significant digits ? maybe UB?
+				Assert::IsTrue((str_fmt + 3.14f) == L"数字：3.140000");
+			}
 		}
 	};
 
