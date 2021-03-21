@@ -231,20 +231,24 @@ namespace test_string
 			{
 				string str_src1("123{0}1234");
 
-				str_src1 = str_src1.format("a");
-				Assert::IsTrue(str_src1 == "123a1234");
+				string str = string::format(str_src1, "a");
+				Assert::IsTrue(str == "123a1234");
 			}
 			{
 				string str_src1("123{1}12{0}34");
 
-				str_src1 = str_src1.format(123, "a");
-				Assert::IsTrue(str_src1 == "123a1212334");
+				string str = string::format(str_src1, 123, "a");
+				Assert::IsTrue(str == "123a1212334");
 			}
 			{
 				string str_src1("123{2}12{1}34");
 
-				str_src1 = str_src1.format("a", 123, "b");
-				Assert::IsTrue(str_src1 == "123b1212334");
+				string str = string::format(str_src1, "a", 123, "b");
+				Assert::IsTrue(str == "123b1212334");
+			}
+			{
+				string str = string::format("123{2}12{1}34", "a", 123, "b");
+				Assert::IsTrue(str == "123b1212334");
 			}
 		}
 	};

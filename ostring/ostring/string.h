@@ -80,6 +80,15 @@ public:
 		calculate_surrogate();
 	}
 
+	// Initializes a new instance of the string class to the value 
+	// indicated by a specified pointer to an array of char16_t characters,
+	// and the endian it is.
+	// @param src: the c-style char16_t string.
+	// @param ec: what's the endian it is.
+	string(const char16_t* src, endian e = endian::big)
+		: string((const wide_char*)src, e)
+	{}
+
 	// Initializes a new instance of the string class with multi count of specific char.
 	// cccc..[count]..cccc
 	// @param c: the char used to init.
@@ -298,7 +307,7 @@ public:
 		return new_inst;
 	}
 
-	template<typename...Args>
+	/*template<typename...Args>
 	string format(Args...args) const
 	{
 		constexpr size_t n = sizeof...(Args);
@@ -307,6 +316,54 @@ public:
 		args_to_strings(argstrings, args...);
 
 		string str(*this);
+
+		size_t index_left = str.index_of("{");
+		while (index_left < str._wa.size())
+		{
+			size_t index_right = str.index_of("}", index_left);
+			size_t index_placeholder = helper::string::to_uint(str._wa.data() + index_left + 1, index_right - index_left - 1);
+
+			str.replace(index_left, index_right - index_left + 1, argstrings[index_placeholder]);
+
+			index_left = str.index_of("{", index_left);
+		}
+
+		return str;
+	}*/
+
+	template<typename...Args>
+	static string format(const string& fmt, Args...args)
+	{
+		/*constexpr size_t n = sizeof...(Args);
+		string argstrings[n];
+
+		args_to_strings(argstrings, args...);
+
+		string str(fmt);
+
+		size_t index_left = str.index_of("{");
+		while (index_left < str._wa.size())
+		{
+			size_t index_right = str.index_of("}", index_left);
+			size_t index_placeholder = helper::string::to_uint(str._wa.data() + index_left + 1, index_right - index_left - 1);
+
+			str.replace(index_left, index_right - index_left + 1, argstrings[index_placeholder]);
+
+			index_left = str.index_of("{", index_left);
+		}*/
+
+		return format(fmt.to_utf16(), args...);
+	}
+
+	template<typename T, typename...Args, typename = helper::character::is_char_type_t<T>>
+	static string format(T* fmt, Args...args)
+	{
+		constexpr size_t n = sizeof...(Args);
+		string argstrings[n];
+
+		args_to_strings(argstrings, args...);
+
+		string str(fmt);
 
 		size_t index_left = str.index_of("{");
 		while (index_left < str._wa.size())
