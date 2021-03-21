@@ -66,14 +66,14 @@ namespace test_string
 			string str_ctor_supplement_2(L"𪚥😁");
 			string str_ctor_supplement_3(L"𪚥");
 
-			Assert::AreEqual(str_default_ctor.compare(str_empty_ansi), 0);
-			Assert::AreEqual(str_empty_wide.compare(str_assign), -1);
-			Assert::AreEqual(str_assign.compare(str_ctor_wide), 0);
-			Assert::AreEqual(str_ctor_wide.compare(str_assign), 0);
-			Assert::AreEqual(str_ctor_wide.compare(str_ctor_ansi_another), 1);
-			Assert::AreEqual(str_ctor_hans.compare(str_ctor_hans_another), -1);
-			Assert::AreEqual(str_ctor_supplement.compare(str_ctor_supplement_2), 0);
-			Assert::AreEqual(str_ctor_supplement.compare(str_ctor_supplement_3), 1);
+			Assert::AreEqual(str_default_ctor.string_compare(str_empty_ansi), 0);
+			Assert::AreEqual(str_empty_wide.string_compare(str_assign), -1);
+			Assert::AreEqual(str_assign.string_compare(str_ctor_wide), 0);
+			Assert::AreEqual(str_ctor_wide.string_compare(str_assign), 0);
+			Assert::AreEqual(str_ctor_wide.string_compare(str_ctor_ansi_another), 1);
+			Assert::AreEqual(str_ctor_hans.string_compare(str_ctor_hans_another), -1);
+			Assert::AreEqual(str_ctor_supplement.string_compare(str_ctor_supplement_2), 0);
+			Assert::AreEqual(str_ctor_supplement.string_compare(str_ctor_supplement_3), 1);
 		}
 	};
 
@@ -97,25 +97,19 @@ namespace test_string
 			string str_ctor_supplement(L"𪚥😁");
 			string str_ctor_supplement_2(L"𪚥");
 
-			constexpr size_t s0 = 0;
-			constexpr size_t s1 = 1;
-			constexpr size_t s2 = 2;
-			constexpr size_t s5 = 5;
-			constexpr size_t s6 = 6;
-
-			Assert::AreEqual	(str_default_ctor.length(),			s0);
-			Assert::IsTrue		(str_default_ctor.is_empty());
-			Assert::AreEqual	(str_empty_ansi.length(),			s0);
-			Assert::AreEqual	(str_empty_wide.length(),			s0);
-			Assert::AreEqual	(str_ctor_ansi.length(),			s6);
-			Assert::IsFalse		(str_ctor_ansi.is_empty());
-			Assert::AreEqual	(str_assign.length(),				s6);
-			Assert::AreEqual	(str_ctor_wide.length(),			s6);
-			Assert::AreEqual	(str_ctor_ansi_another.length(),	s5);
-			Assert::AreEqual	(str_ctor_hans.length(),			s1);
-			Assert::AreEqual	(str_ctor_hans_another.length(),	s2);
-			Assert::AreEqual	(str_ctor_supplement.length(),		s2);
-			Assert::AreEqual	(str_ctor_supplement_2.length(),	s1);
+			Assert::AreEqual<size_t>	(str_default_ctor.length(),			0);
+			Assert::IsTrue				(str_default_ctor.is_empty());
+			Assert::AreEqual<size_t>	(str_empty_ansi.length(),			0);
+			Assert::AreEqual<size_t>	(str_empty_wide.length(),			0);
+			Assert::AreEqual<size_t>	(str_ctor_ansi.length(),			6);
+			Assert::IsFalse				(str_ctor_ansi.is_empty());
+			Assert::AreEqual<size_t>	(str_assign.length(),				6);
+			Assert::AreEqual<size_t>	(str_ctor_wide.length(),			6);
+			Assert::AreEqual<size_t>	(str_ctor_ansi_another.length(),	5);
+			Assert::AreEqual<size_t>	(str_ctor_hans.length(),			1);
+			Assert::AreEqual<size_t>	(str_ctor_hans_another.length(),	2);
+			Assert::AreEqual<size_t>	(str_ctor_supplement.length(),		2);
+			Assert::AreEqual<size_t>	(str_ctor_supplement_2.length(),	1);
 		}
 	};
 
@@ -138,5 +132,82 @@ namespace test_string
 			Assert::IsTrue(combine == correct);
 		}
 	};
+
+	TEST_CLASS(test_string_find)
+	{
+	public:
+
+		TEST_METHOD(string_substring)
+		{
+			using namespace ostr;
+
+			{
+				string str_src1("123321");
+
+				Assert::IsTrue(str_src1.substring(3) == string("321"));
+				Assert::IsTrue(str_src1.substring(0, 4) == string("1233"));
+				Assert::IsTrue(str_src1.substring(1, 4) == string("2332"));
+
+			}
+
+			{
+				string str_src2(L"233你abc");
+
+				Assert::IsTrue(str_src2.substring(3) == string(L"你abc"));
+				Assert::IsTrue(str_src2.substring(0, 4) == string(L"233你"));
+				Assert::IsTrue(str_src2.substring(1, 4) == string(L"33你a"));
+			}
+
+			{
+				string str_src3(L"我😘😘ni");
+
+				Assert::IsTrue(str_src3.substring(2) == string(L"😘ni"));
+				Assert::IsTrue(str_src3.substring(0, 4) == string(L"我😘😘n"));
+				Assert::IsTrue(str_src3.substring(1, 3) == string(L"😘😘n"));
+			}
+		}
+
+		TEST_METHOD(string_lowercase)
+		{
+			using namespace ostr;
+
+			Assert::IsTrue(ostr::helper::string::char_lowercase('A') == 'a');
+			Assert::IsTrue(ostr::helper::string::char_lowercase('a') == 'a');
+			Assert::IsTrue(ostr::helper::string::char_lowercase('1') == '1');
+			Assert::IsTrue(ostr::helper::string::char_lowercase(L'A') == L'a');
+			Assert::IsTrue(ostr::helper::string::char_lowercase(L'a') == L'a');
+			Assert::IsTrue(ostr::helper::string::char_lowercase(L'1') == L'1');
+			Assert::IsTrue(ostr::helper::string::char_lowercase(L'我') == L'我');
+
+		}
+		TEST_METHOD(string_find)
+		{
+			using namespace ostr;
+
+			{
+				string str_src1("1231234");
+				string str_to_find1("123");
+				string str_to_find2("1234");
+
+				Assert::AreEqual<size_t>(0, str_src1.index_of(str_to_find1));
+				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find2));
+				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find1, 2));
+				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find1, 2, 5)); 
+			}
+
+			{
+				string str_src1(L"我😘😘ni");
+				string str_to_find1(L"😘");
+				string str_to_find2(L"😘n");
+				string str_to_find3("n");
+
+				Assert::AreEqual<size_t>(1, str_src1.index_of(str_to_find1));
+				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find3));
+				Assert::AreEqual<size_t>(2, str_src1.index_of(str_to_find1, 2));
+				Assert::AreEqual<size_t>(2, str_src1.index_of(str_to_find2, 2, 2));
+			}
+		}
+	};
+
 
 }

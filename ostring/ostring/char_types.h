@@ -6,19 +6,20 @@ _NS_OSTR_BEGIN
 using ansi_char = char;
 using wide_char = wchar_t;
 
-// Switchable between AnsiChar and WideChar
-using char_t = wide_char;
+using char8_t = unsigned char;
 
-typedef unsigned char   uint8_t;
-typedef unsigned short  uint16_t;
-typedef unsigned int    uint32_t;
+using surrogate_pair = char16_t[2];
 
-using surrogate_pair = uint16_t[2];
-
-enum class endian : uint8_t
+enum class endian : char8_t
 {
 	big,
 	little
+};
+
+enum class case_sensitivity : char8_t
+{
+	sensitive,
+	insensitive
 };
 
 _NS_OSTR_END

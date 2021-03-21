@@ -2,20 +2,22 @@
 //
 
 #include <iostream>
+#include <string>
 #include "string.h"
 #include "helpers.h"
+#include <chrono>
+#include "converter.h"
+
+#define ENUM_COMBINATION STR()
 
 int main()
 {
 	using namespace ostr;
 
-	const char char_wo[] = { 0xe6i8, 0x88i8, 0x91i8, 0x00i8 };
-	string str_wo(char_wo, encoding::utf8);
-	string str_ai(L"😘");
-	string str_ni(L"ni");
+	const wchar_t* str1 = L"我😘😘ni";
+	const wchar_t* str2 = L"😘N";
 
-	string combine = str_wo + str_ai + str_ai + str_ni;
-	string correct = L"我😘😘ni";
+	size_t a = ostr::helper::string::string_search_hash(str1, 7, str2, 3);
 
     return EXIT_SUCCESS;
 }

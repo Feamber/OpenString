@@ -144,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="char_types.h" />
+    <ClInclude Include="converter.h" />
     <ClInclude Include="definitions.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="string.h" />
