@@ -171,13 +171,13 @@ namespace test_string
 		{
 			using namespace ostr;
 
-			Assert::IsTrue(ostr::helper::string::char_lowercase('A') == 'a');
-			Assert::IsTrue(ostr::helper::string::char_lowercase('a') == 'a');
-			Assert::IsTrue(ostr::helper::string::char_lowercase('1') == '1');
-			Assert::IsTrue(ostr::helper::string::char_lowercase(L'A') == L'a');
-			Assert::IsTrue(ostr::helper::string::char_lowercase(L'a') == L'a');
-			Assert::IsTrue(ostr::helper::string::char_lowercase(L'1') == L'1');
-			Assert::IsTrue(ostr::helper::string::char_lowercase(L'我') == L'我');
+			Assert::IsTrue(ostr::helper::character::char_lowercase('A') == 'a');
+			Assert::IsTrue(ostr::helper::character::char_lowercase('a') == 'a');
+			Assert::IsTrue(ostr::helper::character::char_lowercase('1') == '1');
+			Assert::IsTrue(ostr::helper::character::char_lowercase(L'A') == L'a');
+			Assert::IsTrue(ostr::helper::character::char_lowercase(L'a') == L'a');
+			Assert::IsTrue(ostr::helper::character::char_lowercase(L'1') == L'1');
+			Assert::IsTrue(ostr::helper::character::char_lowercase(L'我') == L'我');
 
 		}
 		TEST_METHOD(string_find)
@@ -214,8 +214,37 @@ namespace test_string
 			{
 				string str_src1("1231234");
 
+				str_src1.replace(3, 2, "");
+				Assert::IsTrue(str_src1 == "12334");
+			}
+			{
+				string str_src1("1231234");
+
 				Assert::IsTrue(str_src1.replace_new("123", L"1234") == "123412344");
 				Assert::AreEqual<size_t>(2, str_src1.replace(L"123", "1234"));
+			}
+		}
+		TEST_METHOD(string_format)
+		{
+			using namespace ostr;
+
+			{
+				string str_src1("123{0}1234");
+
+				str_src1 = str_src1.format("a");
+				Assert::IsTrue(str_src1 == "123a1234");
+			}
+			{
+				string str_src1("123{1}12{0}34");
+
+				str_src1 = str_src1.format(123, "a");
+				Assert::IsTrue(str_src1 == "123a1212334");
+			}
+			{
+				string str_src1("123{2}12{1}34");
+
+				str_src1 = str_src1.format("a", 123, "b");
+				Assert::IsTrue(str_src1 == "123b1212334");
 			}
 		}
 	};

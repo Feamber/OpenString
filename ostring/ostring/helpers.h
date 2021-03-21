@@ -167,18 +167,18 @@ namespace helper
 		}
 	}
 
-	namespace string
+	namespace character
 	{
 		// check the type is these 5 types or not
 		template<typename T>
 		using is_char_type_t =
 			std::enable_if
 			<
-				std::is_same_v<T, ansi_char> ||
-				std::is_same_v<T, wide_char> ||
-				std::is_same_v<T, char8_t> ||
-				std::is_same_v<T, char16_t> ||
-				std::is_same_v<T, char32_t>
+			std::is_same_v<T, ansi_char> ||
+			std::is_same_v<T, wide_char> ||
+			std::is_same_v<T, char8_t> ||
+			std::is_same_v<T, char16_t> ||
+			std::is_same_v<T, char32_t>
 			>;
 
 		template<typename T, typename = is_char_type_t<T>>
@@ -187,6 +187,38 @@ namespace helper
 			if (c <= 'Z' && c >= 'A')
 				return c - ('A' - 'a');
 			return c;
+		}
+
+		template<typename T>
+		inline bool is_number(T c)
+		{
+			return c >= '0' && c <= '9';
+		}
+
+		template<typename T>
+		inline char8_t to_number(T c)
+		{
+			if (is_number(c)) return c - '0';
+			return CHAR_MAX;
+		}
+
+	}
+
+	namespace string
+	{
+
+		template<typename T, typename = character::is_char_type_t<T>>
+		inline size_t to_uint(T* str, size_t len)
+		{
+			size_t ans = 0;
+			for (T* c = str; c < str + len; ++c)
+			{
+				if (character::is_number(*c))
+					ans = ans * 10 + character::to_number(*c);
+				else
+					return ans;
+			}
+			return ans;
 		}
 
 		// calculate surrogate pair inside, only work for char16_t
@@ -224,17 +256,13 @@ namespace helper
 		inline auto& case_folder(case_sensitivity cs)
 		{
 			static const std::function<T(T)> _origin([](T c) {return c; });
-			static const std::function<T(T)> _lowercase([](T c) {return char_lowercase(c); });
+			static const std::function<T(T)> _lowercase([](T c) {return character::char_lowercase(c); });
 			return 
 				(cs == case_sensitivity::sensitive) ? _origin : _lowercase;
 		}
 
 		// compare two character
-		template
-		<
-			typename T,
-			typename = std::enable_if_t<std::is_literal_type_v<T>>
-		>
+		template<typename T, typename = std::enable_if_t<std::is_literal_type_v<T>>>
 		inline int literal_compare(T lhs, T rhs, case_sensitivity cs = case_sensitivity::sensitive)
 		{
 			lhs = case_folder<T>(cs)(lhs);
@@ -245,11 +273,7 @@ namespace helper
 		}
 
 		// compare two array of data which are both end with '\0'
-		template
-		<
-			typename T,
-			typename = is_char_type_t<T>
-		>
+		template<typename T, typename = character::is_char_type_t<T>>
 		inline int string_compare(T* lhs, T* rhs, size_t size = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive)
 		{
 			if (lhs == rhs) return 0;
@@ -285,7 +309,7 @@ namespace helper
 				std::remove_const_t<T> src_char = *src_it;
 
 				if (cs == case_sensitivity::insensitive)
-					src_char = char_lowercase(src_char);
+					src_char = character::char_lowercase(src_char);
 
 				if (src_char == 0)
 					return SIZE_MAX;
@@ -325,8 +349,10 @@ namespace helper
 				size_t l = std::min(len, size_t(255));
 				memset(skiptable, static_cast<T>(l), 256 * sizeof(T));
 				needle1 += len - l;
-				if (true) {
-					while (l--) {
+				if (true) 
+				{
+					while (l--) 
+					{
 						skiptable[*needle1 & 0xff] = std::remove_const_t<T>(l);
 						++needle1;
 					}
@@ -444,6 +470,7 @@ namespace helper
 			*/
 			return string_search_hash(src, src_size, substr, substr_size, cs);
 		}
+
 	}
 
 	namespace vector

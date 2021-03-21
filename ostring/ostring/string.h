@@ -4,6 +4,7 @@
 #include <vector>
 #include "char_types.h"
 #include "helpers.h"
+#include <cstdarg>
 
 _NS_OSTR_BEGIN
 
@@ -247,9 +248,20 @@ public:
 		return position_index_to_codepoint(index_found + index);
 	}
 
-	// Returns a new string in which all occurrences of a specified string in the current instance
-	// are replaced with another specified string.
-	// @return: how many substrings have been replaced
+	void replace(size_t from, size_t count, const string& dest, case_sensitivity cs = case_sensitivity::sensitive)
+	{
+		size_t len = _wa.size();
+
+		from = position_codepoint_to_index(from);
+
+		const int size_delta = std::max(1, (int)dest._wa.size()) - std::max<int>(1, (int)count + 1);
+		helper::vector::adjust_size(_wa, from, size_delta);
+		for (size_t i = 0; i < dest._wa.size() - 1; ++i)
+			_wa[from + i] = dest._wa[i];
+
+		calculate_surrogate();
+	}
+
 	size_t replace(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive)
 	{
 		// src should NOT be empty!
@@ -257,7 +269,7 @@ public:
 
 		size_t len = _wa.size();
 		size_t index = 0;
-		index= index_of(src, index, SIZE_MAX, cs);
+		index = index_of(src, index, SIZE_MAX, cs);
 
 		size_t cnt = 0;
 		while (index < len)
@@ -276,6 +288,9 @@ public:
 		return cnt;
 	}
 
+	// Returns a new string in which all occurrences of a specified string in the current instance
+	// are replaced with another specified string.
+	// @return: how many substrings have been replaced
 	string replace_new(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive) const
 	{
 		string new_inst(*this);
@@ -283,10 +298,28 @@ public:
 		return new_inst;
 	}
 
-	string format(...) const
+	template<typename...Args>
+	string format(Args...args) const
 	{
-		// @TODO
-		return string();
+		constexpr size_t n = sizeof...(Args);
+		string argstrings[n];
+
+		args_to_strings(argstrings, args...);
+
+		string str(*this);
+
+		size_t index_left = str.index_of("{");
+		while (index_left < str._wa.size())
+		{
+			size_t index_right = str.index_of("}", index_left);
+			size_t index_placeholder = helper::string::to_uint(str._wa.data() + index_left + 1, index_right - index_left - 1);
+
+			str.replace(index_left, index_right - index_left + 1, argstrings[index_placeholder]);
+
+			index_left = str.index_of("{", index_left);
+		}
+
+		return str;
 	}
 
 	const char16_t* to_utf16() const
@@ -318,6 +351,66 @@ private:
 		return index - helper::string::count_surrogate_pair(_wa.cbegin(), _wa.cbegin() + index);
 	}
 
+
+	static inline ostr::string from_std_to_ostr(const std::string& std_str)
+	{
+		return std_str.c_str();
+	}
+
+	static inline ostr::string from_std_to_ostr(const std::wstring& std_wstr)
+	{
+		return std_wstr.c_str();
+	}
+
+	// use std converter temporily
+	// use std converter temporily
+	// use std converter temporily
+
+	template<typename T>
+	static inline ostr::string to_string(const T& variable)
+	{
+		return variable.to_string();
+	}
+
+	template<>
+	static inline ostr::string to_string(const char* const & str_variable)
+	{
+		return from_std_to_ostr(std::string(str_variable));
+	}
+
+	template<>
+	static inline ostr::string to_string(const int& int_variable)
+	{
+		return from_std_to_ostr(std::to_wstring(int_variable));
+	}
+
+	template<>
+	static inline ostr::string to_string(const float& float_variable)
+	{
+		return from_std_to_ostr(std::to_wstring(float_variable));
+	}
+
+	template<>
+	static inline ostr::string to_string(const double& double_variable)
+	{
+		return from_std_to_ostr(std::to_wstring(double_variable));
+	}
+
+	template<typename...Args>
+	using FixedStringArray = string[sizeof...(Args)];
+
+	template<typename T>
+	static void args_to_strings(string* p_str, T t)
+	{
+		*p_str = to_string(t);
+	}
+
+	template<typename T, typename...Args>
+	static void args_to_strings(string* p_str, T t, Args...args)
+	{
+		*p_str = to_string(t);
+		args_to_strings(p_str + 1, args...);
+	}
 
 private:
 
