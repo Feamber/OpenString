@@ -6,18 +6,14 @@
 #include "string.h"
 #include "helpers.h"
 #include <chrono>
-#include "converter.h"
-
-#define ENUM_COMBINATION STR()
 
 int main()
 {
 	using namespace ostr;
 
-	const wchar_t* str1 = L"我😘😘ni";
-	const wchar_t* str2 = L"😘N";
+	string str_fmt(L"数字：");
 
-	size_t a = ostr::helper::string::string_search_hash(str1, 7, str2, 3);
+	string str = (str_fmt + 3.14);
 
     return EXIT_SUCCESS;
 }
