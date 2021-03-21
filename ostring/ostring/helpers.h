@@ -265,7 +265,13 @@ namespace helper
 			return 0;
 		}
 
-		// @ return: return the index if found, or SIZE_MAX
+		// Find a character from src , return the index in src.
+		// Return SIZE_MAX if not found
+		// @param src: where to search.
+		// @param c: what to search.
+		// @param src_size: how long in src to search, SIZE_MAX if search until meet '\0'. This is the count of real char in memory, that means, count of a surrogate pair is 2, not 1.
+		// @param cs: is this case sensitivity.
+		// @ return: return the index if found, or SIZE_MAX if not.
 		template<typename T>
 		inline size_t char_search(T* src, T c, size_t src_size = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive)
 		{
@@ -291,6 +297,15 @@ namespace helper
 			return SIZE_MAX;
 		}
 
+
+		// Find substr from src with Boyer-Moore algprithm, return the index in src.
+		// Return SIZE_MAX if not found
+		// @param haystack: where to search.
+		// @param haystack_size: how long in src to search. This is the count of real char in memory, that means, count of a surrogate pair is 2, not 1.
+		// @param needle: what to search.
+		// @param needle_size: how long in substr to be searched. This is the count of real char in memory, that means, count of a surrogate pair is 2, not 1.
+		// @param cs: is this case sensitivity.
+		// @return: index in src, SIZE_MAX if not found.
 		template<typename T>
 		size_t string_search_bm(T* haystack, size_t haystack_size, T* needle, size_t needle_size, case_sensitivity cs = case_sensitivity::sensitive)
 		{
@@ -349,6 +364,14 @@ namespace helper
 			return SIZE_MAX; // not found
 		}
 
+		// Find substr from src with hash algprithm, return the index in src.
+		// Return SIZE_MAX if not found
+		// @param src: where to search.
+		// @param src_size: how long in src to search. This is the count of real char in memory, that means, count of a surrogate pair is 2, not 1.
+		// @param substr: what to search.
+		// @param substr_size: how long in substr to be searched. This is the count of real char in memory, that means, count of a surrogate pair is 2, not 1.
+		// @param cs: is this case sensitivity.
+		// @return: index in src, SIZE_MAX if not found.
 		template<typename T>
 		inline size_t string_search_hash(T* src, size_t src_size, T* substr, size_t substr_size, case_sensitivity cs = case_sensitivity::sensitive)
 		{
@@ -383,6 +406,14 @@ namespace helper
 			return SIZE_MAX;
 		}
 
+		// Find substr from src, use hash algorithm when find short one in a short one, Boyer-Moore otherwise, return the index in src.
+		// Return SIZE_MAX if not found
+		// @param src: where to search.
+		// @param src_size: how long in src to search. This is the count of real char in memory, that means, count of a surrogate pair is 2, not 1.
+		// @param substr: what to search.
+		// @param substr_size: how long in substr to be searched. This is the count of real char in memory, that means, count of a surrogate pair is 2, not 1.
+		// @param cs: is this case sensitivity.
+		// @return: index in src, SIZE_MAX if not found.
 		template<typename T>
 		inline size_t string_search(T* src, size_t src_size, T* substr, size_t substr_size, case_sensitivity cs = case_sensitivity::sensitive)
 		{
