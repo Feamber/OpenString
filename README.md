@@ -1,6 +1,3 @@
 # OpenString
-A simple string library.
-
-- 没啥可描述的
-- 我好菜啊
-- 谢谢朋友们
+A string library for easy use.
+方便使用的集成字符串库。
