@@ -29,8 +29,8 @@ int main()
 	// constexpr ostr::string_view a = "123321";
 	// constexpr size_t s = "123321"_sv.length();
 
-	string a = "123{}";
-	string b = a.format(456);
+	std::vector<string_view> parts;
+	size_t split_time = L"eveea"o.split("e", parts);
 
     return EXIT_SUCCESS;
 }

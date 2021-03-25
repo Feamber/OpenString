@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "../ostring/string_view.h"
+#include "../ostring/string.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -111,8 +111,50 @@ namespace test_string_view
 			using namespace ostr;
 			
 			string_view sv = "123"o.substring(0, 1);
-			string s = sv.to_string();
+			string s = sv;
 			Assert::IsTrue(s == "1");
+		}
+		TEST_METHOD(sv_split)
+		{
+			using namespace ostr;
+
+			{
+				std::vector<string_view> parts;
+				size_t split_time = L""o.split("111", parts);
+				Assert::AreEqual<size_t>(0, split_time);
+				Assert::AreEqual<size_t>(1, parts.size());
+				Assert::IsTrue(parts[0] == "");
+			}
+			{
+				std::vector<string_view> parts;
+				size_t split_time = L"eveea"o.split("e", parts);
+				Assert::AreEqual<size_t>(3, split_time);
+				Assert::AreEqual<size_t>(4, parts.size());
+				Assert::IsTrue(parts[0] == "");
+				Assert::IsTrue(parts[1] == "v");
+				Assert::IsTrue(parts[2] == "");
+				Assert::IsTrue(parts[3] == "a");
+			}
+			{
+				std::vector<string_view> parts;
+				size_t split_time = L"eveea"o.split("e", parts, true);
+				Assert::AreEqual<size_t>(3, split_time);
+				Assert::AreEqual<size_t>(2, parts.size());
+				Assert::IsTrue(parts[0] == "v");
+				Assert::IsTrue(parts[1] == "a");
+			}
+			{
+				std::vector<string_view> parts;
+				size_t split_time = L"我，真，是，太，菜，了"o.split(L"，", parts);
+				Assert::AreEqual<size_t>(5, split_time);
+				Assert::AreEqual<size_t>(6, parts.size());
+				Assert::IsTrue(parts[0] == L"我");
+				Assert::IsTrue(parts[1] == L"真");
+				Assert::IsTrue(parts[2] == L"是");
+				Assert::IsTrue(parts[3] == L"太");
+				Assert::IsTrue(parts[4] == L"菜");
+				Assert::IsTrue(parts[5] == L"了");
+			}
 		}
 	};
 }

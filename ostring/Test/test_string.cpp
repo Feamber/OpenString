@@ -193,7 +193,7 @@ namespace test_string
 			Assert::IsTrue(ostr::helper::character::char_lowercase(L'我') == L'我');
 
 		}
-		TEST_METHOD(string_find)
+		TEST_METHOD(string_index_of)
 		{
 			using namespace ostr;
 
@@ -218,6 +218,16 @@ namespace test_string
 				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find3));
 				Assert::AreEqual<size_t>(2, str_src1.index_of(str_to_find1, 2));
 				Assert::AreEqual<size_t>(2, str_src1.index_of(str_to_find2, 2, 2));
+			}
+		}
+		TEST_METHOD(string_search)
+		{
+			using namespace ostr;
+
+			{
+				string str("123456789");
+
+				Assert::AreEqual<size_t>(str.search([](wchar_t c) {return c > L'4'; }), 4);
 			}
 		}
 		TEST_METHOD(string_replace)

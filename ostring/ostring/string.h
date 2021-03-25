@@ -5,6 +5,7 @@
 #include <codecvt>
 #include <algorithm>
 #include "helpers.h"
+#include "string_view.h"
 
 #include "../fmt/include/fmt/format.h"
 #pragma comment(lib, "fmt.lib")
@@ -119,6 +120,23 @@ public:
 		: string(str.c_str())
 	{}
 
+	string(const string_view& sv)
+		: string(
+			sv._bit == string_view::bitsize::_8 ? 
+			std::move(string(sv._str._8.data(), sv.length())) : 
+			std::move(string(sv._str._16.data(), sv.length()))
+		)
+	{}
+
+	string(helper::string::_Wr wr)
+		: string(wr._str)
+	{}
+
+	operator const string_view() const
+	{
+		return _str.c_str();
+	}
+
 	// @return: the length of string.
 	size_t length() const
 	{
@@ -204,23 +222,23 @@ public:
 	// Append back.
 	// @param rhs: append rhs back this string.
 	// @return: ref this string.
-	/*template<typename T>
+	template<typename T>
 	string& operator+=(T rhs)
 	{
-		operator+=(to_string(rhs));
+		_str.append(to_string(rhs));
 		return *this;
-	}*/
+	}
 
 	// Append back, get a new string instance without modify this string.
 	// @param rhs: append rhs back this string.
 	// @return: a new result string instance.
-	/*template<typename T>
+	template<typename T>
 	string operator+(T rhs)
 	{
 		string str = *this;
 		str += rhs;
 		return str;
-	}*/
+	}
 
 	// Get a new substring from specific position with specific size
 	// string("abcdefg").substring(2, 3) == string("cde");
@@ -277,6 +295,18 @@ public:
 		const size_t index_found = it - _str.cbegin();
 		return position_index_to_codepoint(index_found);
 
+	}
+
+	size_t split(const string_view& splitter, std::vector<string_view>& str) const
+	{
+		string_view sv = *this;
+		return sv.split(splitter, str);
+	}
+
+	template<typename F>
+	size_t search(F&& predicate)
+	{
+		return std::find_if(_str.cbegin(), _str.cend(), std::forward<F>(predicate)) - _str.cbegin();
 	}
 
 	string& replace(size_t from, size_t count, const string& dest, case_sensitivity cs = case_sensitivity::sensitive)

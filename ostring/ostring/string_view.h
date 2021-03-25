@@ -5,7 +5,6 @@
 #include "helpers.h"
 #include <string_view>
 #include <algorithm>
-#include "string.h"
 
 #include "../fmt/include/fmt/format.h"
 #pragma comment(lib, "fmt.lib")
@@ -37,15 +36,10 @@ public:
 		: _bit(bitsize::_16)
 		, _str(str, count)
 	{}
-	constexpr string_view(const string& str)
+	constexpr string_view(const helper::string::_Wr & wr)
 		: _bit(bitsize::_16)
-		, _str(str._str.c_str())
+		, _str(wr._str.c_str())
 	{}
-
-	string to_string() const
-	{
-		return string(_bit == string_view::bitsize::_8 ? std::move(string(_str._8.data(), length())) : std::move(string(_str._16.data(), length())));
-	}
 	
 	int compare(const string_view& rhs) const
 	{
@@ -222,13 +216,16 @@ public:
 				return _str._8.find_first_of(pattern._str._8, offset);
 			case bitsize::_16:
 			{
-				return 
+				auto it = 
 					std::find_first_of
 					(
 					_str._8.cbegin() + offset, _str._8.cend()
 					, pattern._str._16.cbegin(), pattern._str._16.cend()
-					) 
-					- _str._8.cbegin();
+					);
+
+				if (it == _str._8.cend())
+					return SIZE_MAX;
+				return it - _str._8.cbegin();
 			}
 			}
 		}
@@ -237,19 +234,34 @@ public:
 			switch (pattern._bit)
 			{
 			case bitsize::_8:
-				return
-					std::find_first_of
-					(
-						_str._16.cbegin() + offset, _str._16.cend()
-						, pattern._str._8.cbegin(), pattern._str._8.cend()
-					)
-					- _str._16.cbegin();
+			{
+				auto it = std::find_first_of
+				(
+					_str._16.cbegin() + offset, _str._16.cend()
+					, pattern._str._8.cbegin(), pattern._str._8.cend()
+				);
+
+				if (it == _str._16.cend())
+					return SIZE_MAX;
+				return it - _str._16.cbegin(); 
+			}
 			case bitsize::_16:
 				return _str._16.find_first_of(pattern._str._16, offset);
 			}
 		}
 		};
 		return SIZE_MAX;
+	}
+	template<typename F>
+	size_t search(F&& predicate)
+	{
+		switch (_bit)
+		{
+		case bitsize::_8:
+			return std::find_if(_str._8.cbegin(), _str._8.cend(), std::forward<F>(predicate)) - _str._8.cbegin();
+		case bitsize::_16:
+			return std::find_if(_str._16.cbegin(), _str._16.cend(), std::forward<F>(predicate)) - _str._16.cbegin();
+		}
 	}
 
 	constexpr bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const
@@ -259,6 +271,22 @@ public:
 		if (lhs) *lhs = substring(0, splitter_index);
 		if (rhs) *rhs = substring(splitter_index + 1);
 		return true;
+	}
+
+	size_t split(const string_view& splitter, std::vector<string_view>& str, bool cull_empty = false) const
+	{
+		string_view lhs;
+		string_view rhs = *this;
+		size_t split_times = 0;
+		while (rhs.split(splitter, &lhs, &rhs))
+		{
+			if(!cull_empty || !lhs.empty())
+				str.push_back(std::move(lhs));
+			++split_times;
+		}
+		if (!cull_empty || !rhs.empty())
+			str.push_back(rhs);
+		return split_times;
 	}
 
 	constexpr string_view trim_start() const
@@ -316,9 +344,13 @@ public:
 	// format string
 	// format rule: fmtlib @ https://github.com/fmtlib/fmt
 	template<typename...Args>
-	string format(Args&&...args) const
+	helper::string::_Wr format(Args&&...args) const
 	{
-		return fmt::format(to_string()._str, go_sv(std::forward<Args>(args))...);
+		return { fmt::format((
+			_bit == bitsize::_16 ? 
+			std::wstring(_str._16) : 
+			std::wstring(_str._8.cbegin(), _str._8.cend())
+			), go_sv(std::forward<Args>(args))...) };
 	}
 
 private:

@@ -257,6 +257,11 @@ namespace helper
 			return from;
 		}
 
+		// wstring wrapper, should NOT use this 
+		struct _Wr
+		{
+			std::wstring _str;
+		};
 	}
 }
 
