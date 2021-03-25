@@ -236,33 +236,52 @@ namespace test_string
 				Assert::IsTrue(str_src1.replace_new("123", L"1234") == "123412344");
 			}
 		}
-		/*TEST_METHOD(string_format)
+		TEST_METHOD(string_format)
 		{
 			using namespace ostr;
 
 			{
 				string str_src1("123{}1234");
 
-				string str = ostr::format(str_src1, "a");
+				string str = str_src1.format("a");
 				Assert::IsTrue(str == "123a1234");
 			}
 			{
 				string str_src1("123{1}12{0}34");
 
-				string str = ostr::format(str_src1, 123, "a");
+				string str = str_src1.format(123, "a");
 				Assert::IsTrue(str == "123a1212334");
 			}
 			{
 				string str_src1("123{2}12{1}34");
 
-				string str = ostr::format(str_src1, "a", 123, "b");
+				string str = str_src1.format("a", 123, L"b");
 				Assert::IsTrue(str == "123b1212334");
+			}
+		}
+		TEST_METHOD(string_trim)
+		{
+			using namespace ostr;
+
+			{
+				string str_src1("   1231234");
+
+				str_src1.trim_start();
+				Assert::IsTrue(str_src1 == "1231234");
 			}
 			{
-				string str = ostr::format("123{2}12{1}34", "a", 123, "b");
-				Assert::IsTrue(str == "123b1212334");
+				string str_src1("   1231234   ");
+
+				str_src1.trim_end();
+				Assert::IsTrue(str_src1 == "   1231234");
 			}
-		}*/
+			{
+				string str_src1("   1231234   ");
+
+				str_src1.trim();
+				Assert::IsTrue(str_src1 == "1231234");
+			}
+		}
 	};
 
 

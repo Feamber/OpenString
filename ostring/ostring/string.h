@@ -21,6 +21,7 @@ enum class encoding : char8_t
 class string
 {
 	friend class string_view;
+	friend struct fmt::formatter<ostr::string, wchar_t>;
 public:
 
 	string() = default;
@@ -323,11 +324,31 @@ public:
 		return new_inst;
 	}
 
-	/*template<typename...Args>
+	template<typename...Args>
 	string format(Args&&...args) const
 	{
-		return fmt::format(_str.c_str(), intern::go_sv(std::forward<Args>(args)...));
-	}*/
+		return fmt::format(_str.c_str(), go_str(std::forward<Args>(args))...);
+	}
+
+	void trim_start()
+	{
+		_str.erase(_str.begin(), std::find_if(_str.begin(), _str.end(), [](auto ch) {
+			return !std::isspace(ch);
+		}));
+	}
+
+	void trim_end()
+	{
+		_str.erase(std::find_if(_str.rbegin(), _str.rend(), [](auto ch) {
+			return !std::isspace(ch);
+		}).base(), _str.end());
+	}
+
+	void trim()
+	{
+		trim_start();
+		trim_end();
+	}
 
 private:
 
@@ -347,6 +368,25 @@ private:
 		return index - helper::string::count_surrogate_pair(_str.cbegin(), _str.cbegin() + index);
 	}
 
+	template<class T>
+	struct is_c_str : std::integral_constant
+		<
+		bool,
+		std::is_same<char const*, typename std::decay<T>::type>::value ||
+		std::is_same<char*, typename std::decay<T>::type>::value
+		>
+	{};
+
+	template<typename T, typename = std::enable_if_t<!is_c_str<T>::value>>
+	static auto&& go_str(T&& t)
+	{
+		return std::forward<T>(t);
+	}
+	template<typename T, typename = void, typename = std::enable_if_t<is_c_str<T>::value>>
+	static auto go_str(T&& t)
+	{
+		return string(t);
+	}
 
 private:
 

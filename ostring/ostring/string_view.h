@@ -318,7 +318,6 @@ public:
 	template<typename...Args>
 	string format(Args&&...args) const
 	{
-		// return format<Args...>(to_string(), std::forward<Args>(args)...);
 		return fmt::format(to_string()._str, go_sv(std::forward<Args>(args))...);
 	}
 
