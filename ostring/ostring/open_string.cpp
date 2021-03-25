@@ -6,14 +6,28 @@
 #include "string.h"
 #include "helpers.h"
 #include <chrono>
+#include <vector>
+#include "../fmt/include/fmt/ranges.h"
+#include "string_view.h"
+#include "static_functions.h"
+
+
+template<class T>
+struct is_c_str : std::integral_constant
+	<
+	bool,
+	std::is_same<char const*, typename std::decay<T>::type>::value ||
+	std::is_same<char*, typename std::decay<T>::type>::value
+	>
+{};
 
 int main()
 {
 	using namespace ostr;
 
-	string str_fmt(L"数字：");
-
-	string str = (str_fmt + 3.14);
+	// constexpr std::string_view ss = "123321";
+	// constexpr ostr::string_view a = "123321";
+	// constexpr size_t s = "123321"_sv.length();
 
     return EXIT_SUCCESS;
 }

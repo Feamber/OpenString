@@ -24,6 +24,12 @@
     <ClCompile Include="test_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_string_view.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="static_function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

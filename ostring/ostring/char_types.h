@@ -3,9 +3,6 @@
 
 _NS_OSTR_BEGIN
 
-using ansi_char = char;
-using wide_char = wchar_t;
-
 using char8_t = unsigned char;
 
 using surrogate_pair = char16_t[2];
