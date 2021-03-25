@@ -317,7 +317,7 @@ public:
 	// Returns a new string in which all occurrences of a specified string in the current instance
 	// are replaced with another specified string.
 	// @return: how many substrings have been replaced
-	string replace_new(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive) const
+	string replace_copy(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive) const
 	{
 		string new_inst(*this);
 		new_inst.replace(src, dest, cs);
@@ -348,6 +348,27 @@ public:
 	{
 		trim_start();
 		trim_end();
+	}
+
+	string trim_start_copy()
+	{
+		string ret(*this);
+		ret.trim_start();
+		return ret;
+	}
+
+	string trim_end_copy()
+	{
+		string ret(*this);
+		ret.trim_end();
+		return ret;
+	}
+
+	string trim_copy()
+	{
+		string ret(*this);
+		ret.trim();
+		return ret;
 	}
 
 private:

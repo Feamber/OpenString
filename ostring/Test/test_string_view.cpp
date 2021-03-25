@@ -84,9 +84,9 @@ namespace test_string_view
 			}
 			{
 				string_view sv_wide_an = L"anti-aliasing";
-				Assert::IsTrue(sv_wide_an.remove_prefix_new(5) == "aliasing");
+				Assert::IsTrue(sv_wide_an.remove_prefix_copy(5) == "aliasing");
 
-				Assert::IsTrue(sv_wide_an.remove_suffix_new(3) == "anti-alias");
+				Assert::IsTrue(sv_wide_an.remove_suffix_copy(3) == "anti-alias");
 			}
 		}
 		TEST_METHOD(sv_substring)

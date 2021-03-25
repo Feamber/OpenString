@@ -183,14 +183,14 @@ public:
 		};
 	}
 
-	constexpr string_view remove_prefix_new(const size_t count) noexcept
+	constexpr string_view remove_prefix_copy(const size_t count) noexcept
 	{
 		string_view sv(*this);
 		sv.remove_prefix(count);
 		return sv;
 	}
 
-	constexpr string_view remove_suffix_new(const size_t count) noexcept
+	constexpr string_view remove_suffix_copy(const size_t count) noexcept
 	{
 		string_view sv(*this);
 		sv.remove_suffix(count);
