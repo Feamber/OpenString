@@ -245,7 +245,7 @@ namespace helper
 
 		// calculate surrogate pair inside, only work for char16_t
 		template<typename _Iter, typename = std::enable_if<std::is_same_v<std::iterator_traits<_Iter>, char16_t>>>
-		inline _Iter codepoint_count(_Iter from, size_t count, _Iter end)
+		inline _Iter codepoint_count_to_iterator(_Iter from, size_t count, _Iter end)
 		{
 			while (count > 0 && from != end)
 			{
@@ -257,11 +257,20 @@ namespace helper
 			return from;
 		}
 
-		// wstring wrapper, should NOT use this 
-		struct _Wr
+		// calculate surrogate pair from end inside, only work for char16_t
+		template<typename _Iter, typename = std::enable_if<std::is_same_v<std::iterator_traits<_Iter>, char16_t>>>
+		inline _Iter codepoint_count_to_iterator_backward(_Iter rfrom, size_t count, _Iter rend)
 		{
-			std::wstring _str;
-		};
+			while (count > 0 && rfrom != rend)
+			{
+				if (((rend - rfrom) > 1) && helper::codepoint::is_surrogate_pair(rfrom[1], rfrom[0]))
+					++rfrom;
+				--count;
+				++rfrom;
+			}
+			return rfrom;
+		}
+
 	}
 }
 

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CppUnitTest.h"
 #include "../ostring/string.h"
 
@@ -14,13 +14,13 @@ namespace test_string_view
 		{
 			using namespace ostr;
 
-			string_view sv_inconst = "a";
+			string_view sv_inconst = OSTR("a");
 			Assert::IsTrue(sv_inconst.length() == 1);
 
-			constexpr string_view sv_constexpr = "bb";
+			constexpr string_view sv_constexpr = OSTR("bb");
 			Assert::IsTrue(sv_constexpr.length() == 2);
 
-			sv_inconst = "ccc";
+			sv_inconst = OSTR("ccc");
 			Assert::IsTrue(sv_inconst.length() == 3);
 
 			sv_inconst = sv_constexpr;
@@ -31,13 +31,13 @@ namespace test_string_view
 		{
 			using namespace ostr;
 
-			string_view sv_inconst = L"a";
+			string_view sv_inconst = OSTR("a");
 			Assert::IsTrue(sv_inconst.length() == 1);
 
-			constexpr string_view sv_constexpr = L"bb";
+			constexpr string_view sv_constexpr = OSTR("bb");
 			Assert::IsTrue(sv_constexpr.length() == 2);
 
-			sv_inconst = L"ccc";
+			sv_inconst = OSTR("ccc");
 			Assert::IsTrue(sv_inconst.length() == 3);
 
 			sv_inconst = sv_constexpr;
@@ -47,11 +47,11 @@ namespace test_string_view
 		{
 			using namespace ostr;
 
-			string_view sv_wide_an = L"an";
-			string_view sv_ansi_an = "an";
+			string_view sv_wide_an = OSTR("an");
+			string_view sv_ansi_an = OSTR("an");
 			Assert::IsTrue(sv_wide_an == sv_ansi_an);
 
-			string_view sv_ansi_aa = "aa";
+			string_view sv_ansi_aa = OSTR("aa");
 			Assert::IsFalse(sv_ansi_an == sv_ansi_aa);
 			Assert::IsFalse(sv_wide_an == sv_ansi_aa);
 
@@ -62,31 +62,122 @@ namespace test_string_view
 		{
 			using namespace ostr;
 
-			string_view sv_wide_an = L"an";
-			string_view sv_ansi_an = "an";
-			Assert::AreEqual<size_t>(2, sv_ansi_an.length());
-			Assert::AreEqual<size_t>(2, sv_wide_an.length());
+			Assert::AreEqual<size_t>(2, OSTR("an").length());
+			Assert::AreEqual<size_t>(0, OSTR("").length());
+			Assert::AreEqual<size_t>(7, OSTR("我😘😘ni").origin_length());
+			Assert::AreEqual<size_t>(5, OSTR("我😘😘ni").length());
+		}
+		TEST_METHOD(sv_index_of)
+		{
+			using namespace ostr;
 
-			string_view sv_ansi_null = "";
-			Assert::AreEqual<size_t>(0, sv_ansi_null.length());
+			{
+				string_view sv_src1(OSTR("1231234"));
+				string_view sv_to_find1(OSTR("123"));
+				string_view sv_to_find2(OSTR("1234"));
+
+				Assert::AreEqual<size_t>(0, sv_src1.index_of(sv_to_find1));
+				Assert::AreEqual<size_t>(3, sv_src1.index_of(sv_to_find2));
+			}
+
+			{
+				string_view sv_src1(OSTR("abcabcd"));
+				string_view sv_to_find1(OSTR("Abc"));
+				string_view sv_to_find2(OSTR("ABcD"));
+
+				Assert::AreEqual<size_t>(SIZE_MAX, sv_src1.index_of(sv_to_find1));
+				Assert::AreEqual<size_t>(SIZE_MAX, sv_src1.index_of(sv_to_find2));
+				Assert::AreEqual<size_t>(0, sv_src1.index_of(sv_to_find1, case_sensitivity::insensitive));
+				Assert::AreEqual<size_t>(3, sv_src1.index_of(sv_to_find2, case_sensitivity::insensitive));
+			}
+
+			{
+				string_view sv_src1(OSTR("我😘😘ni"));
+				string_view sv_to_find1(OSTR("😘"));
+				string_view sv_to_find2(OSTR("😘n"));
+				string_view sv_to_find3(OSTR("n"));
+
+				Assert::AreEqual<size_t>(1, sv_src1.index_of(sv_to_find1));
+				Assert::AreEqual<size_t>(2, sv_src1.index_of(sv_to_find2));
+				Assert::AreEqual<size_t>(3, sv_src1.index_of(sv_to_find3));
+			}
+		}
+		TEST_METHOD(sv_last_index_of)
+		{
+			using namespace ostr;
+
+			{
+				string_view sv = OSTR("abcdefghi");
+				{
+					size_t i = sv.last_index_of(OSTR("ghi"));
+					Assert::AreEqual<size_t>(6, i); 
+				}
+				{
+					size_t i = sv.last_index_of(OSTR("fg"));
+					Assert::AreEqual<size_t>(5, i); 
+				}
+				{
+					size_t i = sv.last_index_of(OSTR("jk"));
+					Assert::AreEqual<size_t>(SIZE_MAX, i); 
+				}
+			}
+			{
+				string_view sv = OSTR("😘™😘我™我");
+				{
+					size_t i = sv.last_index_of(OSTR("™"));
+					Assert::AreEqual<size_t>(4, i);
+				}
+				{
+					size_t i = sv.last_index_of(OSTR("😘"));
+					Assert::AreEqual<size_t>(3, i);
+				}
+				{
+					size_t i = sv.last_index_of(OSTR("我"));
+					Assert::AreEqual<size_t>(5, i);
+				}
+			}
+		}
+		TEST_METHOD(sv_start_ends_with)
+		{
+			using namespace ostr;
+
+			{
+				string_view sv = OSTR("abcdefghi");
+				Assert::IsTrue(sv.start_with(OSTR("abcd")));
+				Assert::IsTrue(sv.ends_with(OSTR("ghi")));
+				Assert::IsFalse(sv.start_with(OSTR("b")));
+				Assert::IsFalse(sv.ends_with(OSTR("h")));
+			}
+			{
+				string_view sv = OSTR("abcdefghi");
+				Assert::IsTrue(sv.start_with(OSTR("abcd")));
+				Assert::IsTrue(sv.ends_with(OSTR("ghi")));
+				Assert::IsFalse(sv.start_with(OSTR("b")));
+				Assert::IsFalse(sv.ends_with(OSTR("h")));
+			}
 		}
 		TEST_METHOD(sv_remove_prefix_suffix)
 		{
 			using namespace ostr;
 
 			{
-				string_view sv_wide_an = L"anti-aliasing";
+				string_view sv_wide_an = OSTR("anti-aliasing");
 				sv_wide_an.remove_prefix(5);
-				Assert::IsTrue(sv_wide_an == "aliasing");
+				Assert::IsTrue(sv_wide_an == OSTR("aliasing"));
 
 				sv_wide_an.remove_suffix(3);
-				Assert::IsTrue(sv_wide_an == "alias"); 
+				Assert::IsTrue(sv_wide_an == OSTR("alias")); 
 			}
 			{
-				string_view sv_wide_an = L"anti-aliasing";
-				Assert::IsTrue(sv_wide_an.remove_prefix_copy(5) == "aliasing");
+				string_view sv_wide_an = OSTR("anti-aliasing");
+				Assert::IsTrue(sv_wide_an.remove_prefix_copy(5) == OSTR("aliasing"));
 
-				Assert::IsTrue(sv_wide_an.remove_suffix_copy(3) == "anti-alias");
+				Assert::IsTrue(sv_wide_an.remove_suffix_copy(3) == OSTR("anti-alias"));
+			}
+			{
+				string_view sv_wide_an = OSTR("我😘😘ni");
+				Assert::IsTrue(sv_wide_an.remove_prefix_copy(2) == OSTR("😘ni"));
+				Assert::IsTrue(sv_wide_an.remove_suffix_copy(3) == OSTR("我😘"));
 			}
 		}
 		TEST_METHOD(sv_substring)
@@ -94,25 +185,32 @@ namespace test_string_view
 			using namespace ostr;
 
 			{
-				string_view sv_wide_an = L"anti-aliasing";
-				Assert::IsTrue(sv_wide_an.substring(2) == "ti-aliasing");
+				string_view sv_wide_an = OSTR("anti-aliasing");
+				Assert::IsTrue(sv_wide_an.substring(2) == OSTR("ti-aliasing"));
 			}
 			{
-				string_view sv_wide_an = L"anti-aliasing";
-				Assert::IsTrue(sv_wide_an.substring(2, 5) == "ti-al");
+				string_view sv_wide_an = OSTR("anti-aliasing");
+				Assert::IsTrue(sv_wide_an.substring(2, 5) == OSTR("ti-al"));
 			}
 			{
-				string_view sv_wide_an = L"anti-aliasing";
-				Assert::IsTrue(sv_wide_an.substring(2, 0) == "");
+				string_view sv_wide_an = OSTR("anti-aliasing");
+				Assert::IsTrue(sv_wide_an.substring(2, 0) == OSTR(""));
 			}
 		}
 		TEST_METHOD(sv_to_string)
 		{
 			using namespace ostr;
 			
-			string_view sv = "123"o.substring(0, 1);
-			string s = sv;
-			Assert::IsTrue(s == "1");
+			{
+				string_view sv = OSTR("123").substring(0, 1);
+				string s = sv;
+				Assert::IsTrue(s == "1"); 
+			}
+			{
+				string_view sv = OSTR("我😘😘ni").substring(1, 1);
+				string s = sv;
+				Assert::IsTrue(s == OSTR("😘"));
+			}
 		}
 		TEST_METHOD(sv_split)
 		{
@@ -120,40 +218,41 @@ namespace test_string_view
 
 			{
 				std::vector<string_view> parts;
-				size_t split_time = L""o.split("111", parts);
+				size_t split_time = OSTR("").split(OSTR("111"), parts);
 				Assert::AreEqual<size_t>(0, split_time);
 				Assert::AreEqual<size_t>(1, parts.size());
-				Assert::IsTrue(parts[0] == "");
+				Assert::IsTrue(parts[0] == OSTR(""));
 			}
 			{
 				std::vector<string_view> parts;
-				size_t split_time = L"eveea"o.split("e", parts);
+				size_t split_time = OSTR("eveea").split(OSTR("e"), parts);
 				Assert::AreEqual<size_t>(3, split_time);
 				Assert::AreEqual<size_t>(4, parts.size());
-				Assert::IsTrue(parts[0] == "");
-				Assert::IsTrue(parts[1] == "v");
-				Assert::IsTrue(parts[2] == "");
-				Assert::IsTrue(parts[3] == "a");
+				Assert::IsTrue(parts[0] == OSTR(""));
+				Assert::IsTrue(parts[1] == OSTR("v"));
+				Assert::IsTrue(parts[2] == OSTR(""));
+				Assert::IsTrue(parts[3] == OSTR("a"));
 			}
 			{
 				std::vector<string_view> parts;
-				size_t split_time = L"eveea"o.split("e", parts, true);
+				size_t split_time = OSTR("eveea").split(OSTR("e"), parts, true);
 				Assert::AreEqual<size_t>(3, split_time);
 				Assert::AreEqual<size_t>(2, parts.size());
-				Assert::IsTrue(parts[0] == "v");
-				Assert::IsTrue(parts[1] == "a");
+				Assert::IsTrue(parts[0] == OSTR("v"));
+				Assert::IsTrue(parts[1] == OSTR("a"));
 			}
 			{
 				std::vector<string_view> parts;
-				size_t split_time = L"�ң��棬�ǣ�̫���ˣ���"o.split(L"��", parts);
-				Assert::AreEqual<size_t>(5, split_time);
-				Assert::AreEqual<size_t>(6, parts.size());
-				Assert::IsTrue(parts[0] == L"��");
-				Assert::IsTrue(parts[1] == L"��");
-				Assert::IsTrue(parts[2] == L"��");
-				Assert::IsTrue(parts[3] == L"̫");
-				Assert::IsTrue(parts[4] == L"��");
-				Assert::IsTrue(parts[5] == L"��");
+				size_t split_time = OSTR("我，真，是，太，™，菜，了").split(OSTR("，"), parts);
+				Assert::AreEqual<size_t>(6, split_time);
+				Assert::AreEqual<size_t>(7, parts.size());
+				Assert::IsTrue(parts[0] == OSTR("我"));
+				Assert::IsTrue(parts[1] == OSTR("真"));
+				Assert::IsTrue(parts[2] == OSTR("是"));
+				Assert::IsTrue(parts[3] == OSTR("太"));
+				Assert::IsTrue(parts[4] == OSTR("™"));
+				Assert::IsTrue(parts[5] == OSTR("菜"));
+				Assert::IsTrue(parts[6] == OSTR("了"));
 			}
 		}
 	};

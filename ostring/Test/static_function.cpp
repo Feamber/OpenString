@@ -15,7 +15,7 @@ struct complex
 };
 
 template<>
-struct fmt::formatter<complex, wchar_t>
+struct fmt::formatter<complex, char16_t>
 {
 	template<typename ParseContext>
 	constexpr auto parse(ParseContext& ctx)
@@ -26,7 +26,7 @@ struct fmt::formatter<complex, wchar_t>
 	template<typename FormatContext>
 	auto format(complex number, FormatContext& ctx)
 	{
-		return fmt::format_to(ctx.out(), L"{0}+i{1}", number.a, number.b);
+		return fmt::format_to(ctx.out(), u"{0}+i{1}", number.a, number.b);
 	}
 };
 
@@ -42,35 +42,31 @@ namespace test_static_function
 			using namespace std::chrono_literals;
 
 			// int
-			string a42 = format("The number is {}.", 42);
+			string a42 = format(OSTR("The number is {}."), 42);
 			Assert::IsTrue(a42 == "The number is 42.");
 
-			// const char*
-			string a43 = format("The number is {}.", "43");
-			Assert::IsTrue(a43 == "The number is 43.");
-
-			// const wchar_t*
-			string a44 = format(L"The number is {}.", L"44");
-			Assert::IsTrue(a44 == "The number is 44.");
+			// const char16_t*
+			string a44 = format(OSTR("The number is {}."), OSTR("43"));
+			Assert::IsTrue(a44 == "The number is 43.");
 
 			// custom structure
-			string a45 = L"The complex is {}."o.format(complex{1, 2});
+			string a45 = OSTR("The complex is {}.").format(complex{1, 2});
 			Assert::IsTrue(a45 == "The complex is 1+i2.");
 
 			// syntax for string_view
-			string a46 = "The number is {}."o.format(L"46"o);
+			string a46 = OSTR("The number is {}.").format(OSTR("46"));
 			Assert::IsTrue(a46 == "The number is 46.");
 
 			// float with correct rounding
-			string a47 = format("The number is {}.", 47.0);
+			string a47 = format(OSTR("The number is {}."), 47.0);
 			Assert::IsTrue(a47 == "The number is 47.");
 
 			// format ordered
-			string a48 = format("The number is {1} and {0}.", 48.0f, 49);
+			string a48 = format(OSTR("The number is {1} and {0}."), 48.0f, 49);
 			Assert::IsTrue(a48 == "The number is 49 and 48.");
 
 			// time
-			string time = "strftime-like format: {:%H:%M:%S}"o.format(3h + 15min + 30s);
+			string time = OSTR("strftime-like format: {:%H:%M:%S}").format(3h + 15min + 30s);
 			Assert::IsTrue(time == "strftime-like format: 03:15:30");
 		}
 	};

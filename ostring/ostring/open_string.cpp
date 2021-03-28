@@ -11,26 +11,14 @@
 #include "string_view.h"
 #include "static_functions.h"
 
-
-template<class T>
-struct is_c_str : std::integral_constant
-	<
-	bool,
-	std::is_same<char const*, typename std::decay<T>::type>::value ||
-	std::is_same<char*, typename std::decay<T>::type>::value
-	>
-{};
-
 int main()
 {
 	using namespace ostr;
 
-	// constexpr std::string_view ss = "123321";
-	// constexpr ostr::string_view a = "123321";
-	// constexpr size_t s = "123321"_sv.length();
+	std::u16string a = u"我";
+	std::u16string b = u"我他";
 
-	std::vector<string_view> parts;
-	size_t split_time = L"eveea"o.split("e", parts);
+	int i = a.compare(b);
 
     return EXIT_SUCCESS;
 }

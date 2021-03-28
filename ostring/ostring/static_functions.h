@@ -6,18 +6,18 @@ _NS_OSTR_BEGIN
 
 // format string
 // format rule: fmtlib @ https://github.com/fmtlib/fmt
-template<typename...Args>
+/*template<typename...Args>
 string format(const char* fmt, Args&&...args)
 {
 	return format(string_view(fmt), std::forward<Args>(args)...);
-}
+}*/
 
 // format string
 // format rule: fmtlib @ https://github.com/fmtlib/fmt
 template<typename...Args>
-string format(const wchar_t* fmt, Args&&...args)
+string format(const char16_t* fmt, Args&&...args)
 {
-	return format(string_view(fmt), std::forward<Args>(args)...);
+	return std::move( format(string_view(fmt), std::forward<Args>(args)...) );
 }
 
 // format string

@@ -47,7 +47,7 @@ public:
 		{
 			// ansi is a subset of the first plane
 			//_str.insert(_str.cbegin(), src, src + len);
-			_str = std::wstring(src, src + len);
+			_str = std::u16string(src, src + len);
 			break;
 		}
 		case encoding::utf8:
@@ -76,27 +76,18 @@ public:
 	// and the endian it is.
 	// @param src: the c-style wide char.
 	// @param ec: what's the endian it is.
-	string(const wchar_t* src, size_t length = SIZE_MAX)
+	string(const char16_t* src, size_t length = SIZE_MAX)
 		:_surrogate_pair_count(0)
 		, _str(src, 0, length)
 	{
 		calculate_surrogate();
 	}
 
-	// Initializes a new instance of the string class to the value 
-	// indicated by a specified pointer to an array of char16_t characters,
-	// and the endian it is.
-	// @param src: the c-style char16_t string.
-	// @param ec: what's the endian it is.
-	string(const char16_t* src)
-		: string((const wchar_t*)src)
-	{}
-
 	// Initializes a new instance of the string class with multi count of specific char.
 	// cccc..[count]..cccc
 	// @param c: the char used to init.
 	// @param count: how may c.
-	string(const wchar_t c, size_t count = 1)
+	string(const char16_t c, size_t count = 1)
 		:_surrogate_pair_count(0)
 	{
 		// ansi as well as BMP in first plane can trans to wide char without side effect
@@ -106,9 +97,8 @@ public:
 	// Initializes a new instance of the string class with std::wstring.
 	// @param str: the wstring used to init.
 	// @param count: how may c.
-	string(const std::wstring& str)
+	string(const std::u16string& str)
 		: _str(str)
-		, _surrogate_pair_count(0)
 	{
 		calculate_surrogate();
 	}
@@ -121,15 +111,11 @@ public:
 	{}
 
 	string(const string_view& sv)
-		: string(
-			sv._bit == string_view::bitsize::_8 ? 
-			std::move(string(sv._str._8.data(), sv.length())) : 
-			std::move(string(sv._str._16.data(), sv.length()))
-		)
+		: string(sv._str.data(), sv.origin_length())
 	{}
 
-	string(helper::string::_Wr wr)
-		: string(wr._str)
+	string(const std::u16string_view& wr)
+		: string(wr.data(), wr.size())
 	{}
 
 	operator const string_view() const
@@ -147,6 +133,11 @@ public:
 	bool is_empty() const
 	{
 		return length() == 0;
+	}
+
+	int compare(const string& rhs) const
+	{
+		return _str.compare(rhs._str);
 	}
 
 	// Are they totally equal?
@@ -256,7 +247,7 @@ public:
 		}
 		else
 		{
-			auto from_it = helper::string::codepoint_count(_str.cbegin(), from, _str.cend());
+			auto from_it = helper::string::codepoint_count_to_iterator(_str.cbegin(), from, _str.cend());
 
 			const size_t substr_surrogate_pair_count = _surrogate_pair_count - ((from_it - _str.cbegin()) - from);
 			const size_t real_size = uint16_size + substr_surrogate_pair_count;
@@ -273,7 +264,19 @@ public:
 	// @param from: from where to search.
 	// @param length: how many length in this string to search, that means, searching from "from" to "from + length".
 	// @return: the new substring instance
+
 	size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const
+	{
+		return static_cast<string_view>(*this).substring(from, length).index_of(substr, cs) + from;
+	}
+
+	// Get the last index of specific string
+	// string("123321123").last_index_of("123") == 6;
+	// @param substr: substring to search.
+	// @param from: from where to search.
+	// @param length: how many length in this string to search, that means, searching from "from" to "from + length".
+	// @return: the new substring instance
+	/*size_t last_index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const
 	{
 		// f(a) = c
 		// f(a+b) = c+d
@@ -295,6 +298,12 @@ public:
 		const size_t index_found = it - _str.cbegin();
 		return position_index_to_codepoint(index_found);
 
+	}*/
+
+	bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const
+	{
+		string_view sv = *this;
+		return sv.split(splitter, lhs, rhs);
 	}
 
 	size_t split(const string_view& splitter, std::vector<string_view>& str) const
@@ -338,7 +347,7 @@ public:
 			// split into two steps beware of negative number when use type size_t
 			_surrogate_pair_count += dest._surrogate_pair_count;
 			_surrogate_pair_count -= src._surrogate_pair_count;
-			index += src._str.size() - 1;
+			index += dest._str.size();
 			index = index_of(src, index, SIZE_MAX, cs);
 		}
 		return *this;
@@ -408,9 +417,9 @@ private:
 		_surrogate_pair_count = helper::string::count_surrogate_pair(_str.cbegin(), _str.cend());
 	}
 
-	size_t position_codepoint_to_index(size_t codepoint_count) const
+	size_t position_codepoint_to_index(size_t codepoint_count_to_iterator) const
 	{
-		auto from_it = helper::string::codepoint_count(_str.cbegin(), codepoint_count, _str.cend());
+		auto from_it = helper::string::codepoint_count_to_iterator(_str.cbegin(), codepoint_count_to_iterator, _str.cend());
 		return from_it - _str.cbegin();
 	}
 
@@ -441,7 +450,7 @@ private:
 
 private:
 
-	std::wstring _str;
+	std::u16string _str;
 
 	size_t _surrogate_pair_count = 0;
 

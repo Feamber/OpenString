@@ -17,94 +17,20 @@ public:
 
 	constexpr string_view()
 		: _str()
-		, _bit()
 	{}
-	constexpr string_view(const string_view&) = default;
-	constexpr string_view(const char* str)
-		: _bit(bitsize::_8)
-		, _str(str)
+	constexpr string_view(const string_view&) 
+		= default;
+
+	constexpr string_view(const char16_t* str)
+		: _str(str)
 	{}
-	constexpr string_view(const wchar_t* str)
-		: _bit(bitsize::_16)
-		, _str(str)
-	{}
-	constexpr string_view(const char* str, size_t count)
-		: _bit(bitsize::_8)
-		, _str(str, count)
-	{}
-	constexpr string_view(const wchar_t* str, size_t count)
-		: _bit(bitsize::_16)
-		, _str(str, count)
-	{}
-	constexpr string_view(const helper::string::_Wr & wr)
-		: _bit(bitsize::_16)
-		, _str(wr._str.c_str())
+	constexpr string_view(const char16_t* str, size_t count)
+		: _str(str, count)
 	{}
 	
 	int compare(const string_view& rhs) const
 	{
-		switch (_bit)
-		{
-		case bitsize::_8:
-		{
-			switch (rhs._bit)
-			{
-			case bitsize::_8:
-				return _str._8.compare(rhs._str._8);
-			case bitsize::_16:
-			{
-				size_t i = 0;
-				const size_t lhs_size = _str._8.size();
-				const size_t rhs_size = rhs._str._16.size();
-				const size_t limit = std::min(lhs_size, rhs_size);
-
-				while (i < limit)
-				{
-					if (_str._8[i] != rhs._str._16[i])
-						return _str._8[i] < rhs._str._16[i] ? -1 : 1;
-					++i;
-				}
-
-				if (lhs_size < rhs_size)
-					return -1;
-				if (lhs_size > rhs_size)
-					return 1;
-				return 0;
-			}
-			}
-			break;
-		}
-		case bitsize::_16:
-		{
-			switch (rhs._bit)
-			{
-			case bitsize::_8:
-			{
-				size_t i = 0;
-				const size_t lhs_size = _str._16.size();
-				const size_t rhs_size = rhs._str._8.size();
-				const size_t limit = std::min(lhs_size, rhs_size);
-				
-				while (i < limit)
-				{
-					if (_str._16[i] != rhs._str._8[i])
-						return _str._16[i] < rhs._str._8[i] ? -1 : 1;
-					++i;
-				}
-
-				if(lhs_size < rhs_size)
-					return -1;
-				if (lhs_size > rhs_size)
-					return 1;
-				return 0;
-			}
-			case bitsize::_16:
-				return _str._16.compare(rhs._str._16);
-			}
-			break;
-		}
-		};
-		return 0;
+		return _str.compare(rhs._str);
 	}
 
 	bool operator==(const string_view& rhs) const
@@ -138,133 +64,92 @@ public:
 		return compare(rhs) >= 0;
 	}
 
-	[[nodiscard]] constexpr size_t length() const noexcept
+	[[nodiscard]] constexpr size_t origin_length() const noexcept
 	{
-		switch (_bit)
-		{
-		case bitsize::_8:
-			return _str._8.length();
-		case bitsize::_16:
-			return _str._16.length();
-		};
-		return SIZE_MAX;
+		return _str.length();
+	}
+
+	[[nodiscard]] size_t length() const noexcept
+	{
+		size_t count_sp = helper::string::count_surrogate_pair(_str.cbegin(), _str.cend());
+		return _str.length() - count_sp;
 	}
 
 	[[nodiscard]] constexpr bool empty() const noexcept
 	{
-		return length() == 0;
+		return origin_length() == 0;
 	}
 
-	constexpr void remove_prefix(const size_t count) noexcept
+	void remove_prefix(size_t count) noexcept
 	{
-		switch (_bit)
-		{
-		case bitsize::_8:
-			return _str._8.remove_prefix(count);
-		case bitsize::_16:
-			return _str._16.remove_prefix(count);
-		};
+		count = helper::string::codepoint_count_to_iterator(_str.cbegin(), count, _str.cend()) - _str.cbegin();
+		_str.remove_prefix(count);
 	}
 
-	constexpr void remove_suffix(const size_t count) noexcept
+	void remove_suffix(size_t count) noexcept
 	{
-		switch (_bit)
-		{
-		case bitsize::_8:
-			return _str._8.remove_suffix(count);
-		case bitsize::_16:
-			return _str._16.remove_suffix(count);
-		};
+		count = helper::string::codepoint_count_to_iterator_backward(_str.crbegin(), count, _str.crend()) - _str.crbegin();
+		_str.remove_suffix(count);
 	}
 
-	constexpr string_view remove_prefix_copy(const size_t count) noexcept
+	string_view remove_prefix_copy(size_t count) noexcept
 	{
 		string_view sv(*this);
 		sv.remove_prefix(count);
 		return sv;
 	}
 
-	constexpr string_view remove_suffix_copy(const size_t count) noexcept
+	string_view remove_suffix_copy(size_t count) noexcept
 	{
 		string_view sv(*this);
 		sv.remove_suffix(count);
 		return sv;
 	}
 	
-	[[nodiscard]] constexpr string_view substring(const size_t offset = 0, size_t count = SIZE_MAX) const
+	[[nodiscard]] string_view substring(size_t offset = 0, size_t count = SIZE_MAX) const
 	{
-		size_t realsize = std::min(count, length() - offset);
-		switch (_bit)
-		{
-		case bitsize::_8:
-			return string_view(_str._8.substr(offset), realsize);
-		case bitsize::_16:
-			return string_view(_str._16.substr(offset), realsize);
-		};
-		return "INVALID STRING_VIEW";
+		convert_codepoint_into_index(offset, count);
+		return string_view(_str.substr(offset, count));
 	}
 
-	[[nodiscard]] constexpr size_t index_of(string_view pattern, const size_t offset = 0) const
+	[[nodiscard]] size_t index_of(const string_view& pattern, case_sensitivity cs = case_sensitivity::sensitive) const
 	{
-		switch (_bit)
-		{
-		case bitsize::_8:
-		{
-			switch (pattern._bit)
-			{
-			case bitsize::_8:
-				return _str._8.find_first_of(pattern._str._8, offset);
-			case bitsize::_16:
-			{
-				auto it = 
-					std::find_first_of
-					(
-					_str._8.cbegin() + offset, _str._8.cend()
-					, pattern._str._16.cbegin(), pattern._str._16.cend()
-					);
+		auto& predicate = helper::character::case_predicate<wchar_t>(cs);
 
-				if (it == _str._8.cend())
-					return SIZE_MAX;
-				return it - _str._8.cbegin();
-			}
-			}
-		}
-		case bitsize::_16:
-		{
-			switch (pattern._bit)
-			{
-			case bitsize::_8:
-			{
-				auto it = std::find_first_of
-				(
-					_str._16.cbegin() + offset, _str._16.cend()
-					, pattern._str._8.cbegin(), pattern._str._8.cend()
-				);
+		auto it = std::search(
+			_str.cbegin(), _str.cend()
+			, pattern._str.cbegin(), pattern._str.cend(),
+			predicate
+		);
 
-				if (it == _str._16.cend())
-					return SIZE_MAX;
-				return it - _str._16.cbegin(); 
-			}
-			case bitsize::_16:
-				return _str._16.find_first_of(pattern._str._16, offset);
-			}
-		}
-		};
-		return SIZE_MAX;
+		if (it == _str.cend()) return SIZE_MAX;
+
+		const size_t index_found = it - _str.cbegin();
+		return position_index_to_codepoint(index_found);
 	}
+
+	[[nodiscard]] size_t last_index_of(string_view pattern, case_sensitivity cs = case_sensitivity::sensitive) const
+	{
+		auto& predicate = helper::character::case_predicate<wchar_t>(cs);
+
+		auto it = std::search(
+			_str.crbegin(), _str.crend()
+			, pattern._str.crbegin(), pattern._str.crend(),
+			predicate
+		);
+
+		if (it == _str.crend()) return SIZE_MAX;
+		const size_t index_found = _str.crend() - it - pattern.length();
+		return position_index_to_codepoint(index_found);
+	}
+
 	template<typename F>
 	size_t search(F&& predicate)
 	{
-		switch (_bit)
-		{
-		case bitsize::_8:
-			return std::find_if(_str._8.cbegin(), _str._8.cend(), std::forward<F>(predicate)) - _str._8.cbegin();
-		case bitsize::_16:
-			return std::find_if(_str._16.cbegin(), _str._16.cend(), std::forward<F>(predicate)) - _str._16.cbegin();
-		}
+		return std::find_if(_str.cbegin(), _str.cend(), std::forward<F>(predicate)) - _str.cbegin();
 	}
 
-	constexpr bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const
+	bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const
 	{
 		const size_t splitter_index = index_of(splitter);
 		if (splitter_index == SIZE_MAX) return false;
@@ -289,31 +174,31 @@ public:
 		return split_times;
 	}
 
-	constexpr string_view trim_start() const
+	bool start_with(const string_view& sv_start) const
+	{
+		return substring(0, sv_start.length()) == sv_start;
+	}
+
+	bool ends_with(const string_view& sv_start) const
+	{
+		return substring(length() - sv_start.length(), sv_start.length()) == sv_start;
+	}
+
+	string_view trim_start() const
 	{
 		size_t begin = 0;
-
-		switch (_bit)
-		{
-		case bitsize::_8:
-			while (_str._8.data()[begin] == ' ')
-				++begin;
-			break;
-		case bitsize::_16:
-			while (_str._16.data()[begin] == ' ')
-				++begin;
-			break;
-		};
+		while (_str.data()[begin] == ' ')
+			++begin;
 		return substring(begin);
 	}
 
-	constexpr string_view trim_end() const
+	string_view trim_end() const
 	{
-		size_t end = index_of(" ");
+		size_t end = index_of(u" ");
 		return substring(0, end);
 	}
 
-	constexpr string_view trim() const
+	string_view trim() const
 	{
 		return trim_start().trim_end();
 	}
@@ -322,115 +207,56 @@ public:
 	{
 		int value = 0;
 		string_view sv = trim();
-		switch (_bit)
-		{
-		case bitsize::_8:
-		{
-			for (const auto& c : sv._str._8)
-				value = value * 10 + c - '0';
-			break;
-		}
-		case bitsize::_16:
-		{
-			for (const auto& c : sv._str._16)
-				value = value * 10 + c - L'0';
-			break;
-		}
-		};
-
+		for (const auto& c : sv._str)
+			value = value * 10 + c - OCHAR('0');
 		return value;
 	}
 
 	// format string
 	// format rule: fmtlib @ https://github.com/fmtlib/fmt
 	template<typename...Args>
-	helper::string::_Wr format(Args&&...args) const
+	std::u16string format(Args&&...args) const
 	{
-		return { fmt::format((
-			_bit == bitsize::_16 ? 
-			std::wstring(_str._16) : 
-			std::wstring(_str._8.cbegin(), _str._8.cend())
-			), go_sv(std::forward<Args>(args))...) };
+		return fmt::format(_str, std::forward<Args>(args)...);
 	}
 
 private:
 	
-	string_view(std::string_view&& sv, size_t count)
-		: _str(std::move(sv), count)
-		, _bit(bitsize::_8)
+	constexpr string_view(std::u16string_view&& sv)
+		: _str(sv)
 	{}
 
-	string_view(std::wstring_view&& sv, size_t count)
-		: _str(std::move(sv), count)
-		, _bit(bitsize::_16)
-	{}
-
-	template<class T>
-	struct is_c_str : std::integral_constant
-		<
-		bool,
-		std::is_same<char const*, typename std::decay<T>::type>::value ||
-		std::is_same<char*, typename std::decay<T>::type>::value
-		>
-	{};
-
-	template<typename T, typename = std::enable_if_t<!is_c_str<T>::value>>
-	static auto&& go_sv(T&& t)
+	size_t position_codepoint_to_index(size_t codepoint_count_to_iterator) const
 	{
-		return std::forward<T>(t);
-	}
-	template<typename T, typename = void, typename = std::enable_if_t<is_c_str<T>::value>>
-	static auto go_sv(T&& t)
-	{
-		return string_view(t);
+		auto from_it = helper::string::codepoint_count_to_iterator(_str.cbegin(), codepoint_count_to_iterator, _str.cend());
+		return from_it - _str.cbegin();
 	}
 
+	size_t position_index_to_codepoint(size_t index) const
+	{
+		return index - helper::string::count_surrogate_pair(_str.cbegin(), _str.cbegin() + index);
+	}
+
+	void convert_codepoint_into_index(size_t& from, size_t& count) const
+	{
+		const size_t index = position_codepoint_to_index(from);
+		const size_t b = std::min(count, _str.size() - from);
+		const size_t real_size = position_codepoint_to_index(from + b) - index;
+		from = index; 
+		count = real_size;
+	}
 
 private:
 
 	friend class string;
-	friend struct fmt::formatter<ostr::string_view, wchar_t>;
+	friend struct fmt::formatter<ostr::string_view, char16_t>;
 
-	union string_view_union
-	{
-		std::string_view _8;
-		std::wstring_view _16;
-
-		constexpr string_view_union()
-			:_16()
-		{}
-
-		constexpr string_view_union(const char* str)
-			: _8(str) {}
-		constexpr string_view_union(const wchar_t* str)
-			: _16(str) {}
-
-		constexpr string_view_union(const char* str, size_t count)
-			: _8(str, count) {}
-		constexpr string_view_union(const wchar_t* str, size_t count)
-			: _16(str, count) {}
-
-		constexpr string_view_union(std::string_view&& str, size_t count)
-			: _8(str.data(), count) {}
-		constexpr string_view_union(std::wstring_view&& str, size_t count)
-			: _16(str.data(), count) {}
-	} _str;
-
-	enum class bitsize : uint8_t
-	{
-		_8,
-		_16
-	} _bit;
+	std::u16string_view _str;
 };
 
 #pragma warning(push)
 #pragma warning(disable: 455)
-constexpr string_view operator""o(const char* str, size_t len)
-{
-	return string_view(str, len);
-}
-
-constexpr string_view operator""o(const wchar_t* str, size_t len)
+constexpr string_view operator""o(const char16_t* str, size_t len)
 {
 	return string_view(str, len);
 }
@@ -439,7 +265,7 @@ constexpr string_view operator""o(const wchar_t* str, size_t len)
 _NS_OSTR_END 
 
 template<>
-struct fmt::formatter<ostr::string_view, wchar_t>
+struct fmt::formatter<ostr::string_view, char16_t>
 {
 	template<typename ParseContext>
 	constexpr auto parse(ParseContext& ctx)
@@ -450,10 +276,7 @@ struct fmt::formatter<ostr::string_view, wchar_t>
 	template<typename FormatContext>
 	auto format(ostr::string_view sv, FormatContext& ctx)
 	{
-		if (sv._bit == ostr::string_view::bitsize::_8)
-			return fmt::format_to(ctx.out(), L"{}", std::wstring(sv._str._8.cbegin(), sv._str._8.cend()));
-		return fmt::format_to(ctx.out(), L"{}", sv._str._16);
+		return fmt::format_to(ctx.out(), u"{}", sv._str);
 	}
 };
-
 
