@@ -1,11 +1,10 @@
 ﻿
 #include <gtest/gtest.h>
 
-#include "osv.h"
+#include "ostring/osv.h"
 
-namespace gtest_osv
+namespace osv
 {
-
 	TEST(construct, literal) {
 		using namespace ostr;
 		using namespace ostr::literal;

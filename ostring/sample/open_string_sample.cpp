@@ -6,16 +6,14 @@
 #include <chrono>
 #include <vector>
 #include <iostream>
-#include "helpers.h"
-#include "osv.h"
-#include "osf.h"
+#include "ostring/helpers.h"
+#include "ostring/osv.h"
+#include "ostring/osf.h"
+#include "spdlog/spdlog.h"
 
 int main()
 {
-	using namespace std;
-
-	cout << "sample ÉúÐ§" << endl;
-
+	spdlog::info("Welcome to spdlog!");
 	return EXIT_SUCCESS;
 }
 

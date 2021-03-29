@@ -57,18 +57,9 @@ include(GNUInstallDirs)
 set_verbose(FMT_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE STRING
             "Installation directory for include files, a relative path that "
             "will be joined with ${CMAKE_INSTALL_PREFIX} or an absolute path.")
-
-option(FMT_PEDANTIC "Enable extra warnings and expensive tests." OFF)
-option(FMT_WERROR "Halt the compilation with an error on compiler warnings."
-       OFF)
-
+            
 # Options that control generation of various targets.
-option(FMT_DOC "Generate the doc target." ${FMT_MASTER_PROJECT})
 option(FMT_INSTALL "Generate the install target." ${FMT_MASTER_PROJECT})
-option(FMT_TEST "Generate the test target." ${FMT_MASTER_PROJECT})
-option(FMT_FUZZ "Generate the fuzz target." OFF)
-option(FMT_CUDA_TEST "Generate the cuda-test target." OFF)
-option(FMT_OS "Include core requiring OS (Windows/Posix) " ON)
 
 # Get version from core.h
 file(READ include/fmt/core.h core_h)
@@ -194,7 +185,7 @@ else()
   set(FMT_SOURCES src/format.cc)
 endif ()
 
-add_library(fmt ${FMT_SOURCES} ${FMT_HEADERS} README.rst ChangeLog.rst)
+add_library(fmt ${FMT_SOURCES} ${FMT_HEADERS})
 add_library(fmt::fmt ALIAS fmt)
 
 if (HAVE_STRTOD_L)
@@ -206,13 +197,6 @@ if (MINGW)
   if (${FMT_HAS_MBIG_OBJ})
     target_compile_options(fmt PUBLIC "-Wa,-mbig-obj")
   endif()
-endif ()
-
-if (FMT_WERROR)
-  target_compile_options(fmt PRIVATE ${WERROR_FLAG})
-endif ()
-if (FMT_PEDANTIC)
-  target_compile_options(fmt PRIVATE ${PEDANTIC_COMPILE_FLAGS})
 endif ()
 
 target_compile_features(fmt INTERFACE ${FMT_REQUIRED_FEATURES})
@@ -322,44 +306,3 @@ if (FMT_INSTALL)
   install(FILES "${pkgconfig}" DESTINATION "${FMT_PKGCONFIG_DIR}")
 endif ()
 
-if (FMT_DOC)
-  add_subdirectory(doc)
-endif ()
-
-if (FMT_TEST)
-  enable_testing()
-  add_subdirectory(test)
-endif ()
-
-# Control fuzzing independent of the unit tests.
-if (FMT_FUZZ)
-  add_subdirectory(test/fuzzing)
-
-  # The FMT_FUZZ macro is used to prevent resource exhaustion in fuzzing
-  # mode and make fuzzing practically possible. It is similar to
-  # FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION but uses a different name to
-  # avoid interfering with fuzzing of projects that use {fmt}.
-  # See also https://llvm.org/docs/LibFuzzer.html#fuzzer-friendly-build-mode.
-  target_compile_definitions(fmt PUBLIC FMT_FUZZ)
-endif ()
-
-set(gitignore ${PROJECT_SOURCE_DIR}/.gitignore)
-if (FMT_MASTER_PROJECT AND EXISTS ${gitignore})
-  # Get the list of ignored files from .gitignore.
-  file (STRINGS ${gitignore} lines)
-  list(REMOVE_ITEM lines /doc/html)
-  foreach (line ${lines})
-    string(REPLACE "." "[.]" line "${line}")
-    string(REPLACE "*" ".*" line "${line}")
-    set(ignored_files ${ignored_files} "${line}$" "${line}/")
-  endforeach ()
-  set(ignored_files ${ignored_files}
-    /.git /breathe /format-benchmark sphinx/ .buildinfo .doctrees)
-
-  set(CPACK_SOURCE_GENERATOR ZIP)
-  set(CPACK_SOURCE_IGNORE_FILES ${ignored_files})
-  set(CPACK_SOURCE_PACKAGE_FILE_NAME fmt-${FMT_VERSION})
-  set(CPACK_PACKAGE_NAME fmt)
-  set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/README.rst)
-  include(CPack)
-endif ()
