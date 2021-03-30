@@ -351,6 +351,11 @@ public:
 		return ret;
 	}
 
+	std::u16string_view raw() const
+	{
+		return _str;
+	}
+
 private:
 
 	void calculate_surrogate()
@@ -412,6 +417,6 @@ struct fmt::formatter<ostr::string, char16_t>
 	template<typename FormatContext>
 	auto format(ostr::string str, FormatContext& ctx)
 	{
-		return fmt::format_to(ctx.out(), u"{}", str._str);
+		return fmt::format_to(ctx.out(), u"{}", str.raw());
 	}
 };

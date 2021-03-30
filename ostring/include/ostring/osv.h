@@ -26,6 +26,10 @@ public:
 	constexpr string_view(const char16_t* str, size_t count)
 		: _str(str, count)
 	{}
+
+	constexpr string_view(std::u16string_view sv)
+		: _str(sv)
+	{}
 	
 	int compare(const string_view& rhs) const
 	{
@@ -230,10 +234,6 @@ public:
 	}
 
 private:
-	
-	constexpr string_view(std::u16string_view&& sv)
-		: _str(sv)
-	{}
 
 	size_t position_codepoint_to_index(size_t codepoint_count_to_iterator) const
 	{

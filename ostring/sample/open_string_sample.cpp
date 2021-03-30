@@ -17,7 +17,13 @@ int main()
 	using namespace std;
 
 	olog::init_log_system();
-	olog::critical(OSTR("abc你φ"));
+
+	olog::verbose("this is a verbose message.");
+	olog::debug(OSTR("this is a debug message."));
+	olog::info(OSTR("this is an {}.").format(OSTR("info")));
+	olog::warn("this is a warning.");
+	LOG_FFL olog::error(OSTR("this is an error message."));
+	olog::fatal("this is an {} message.", "fatal");
 
 	return EXIT_SUCCESS;
 }

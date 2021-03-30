@@ -154,7 +154,7 @@ enum level_enum
 #if !defined(SPDLOG_LEVEL_NAMES)
 #define SPDLOG_LEVEL_NAMES                                                                                                                 \
     {                                                                                                                                      \
-        "trace", "debug", "info", "warning", "error", "critical", "off"                                                                    \
+        "verbose", "debug", "info", "warning", "error", "fatal", "off"                                                                    \
     }
 #endif
 
@@ -162,7 +162,7 @@ enum level_enum
 
 #define SPDLOG_SHORT_LEVEL_NAMES                                                                                                           \
     {                                                                                                                                      \
-        "T", "D", "I", "W", "E", "C", "O"                                                                                                  \
+        "V", "D", "I", "W", "E", "F", "O"                                                                                                  \
     }
 #endif
 
