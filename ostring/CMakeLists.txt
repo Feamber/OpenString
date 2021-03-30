@@ -11,10 +11,10 @@ project(open_string)
 add_subdirectory(extern)
 
 file(GLOB_RECURSE headers include/*.h)
-#file(GLOB_RECURSE sources source/*.cpp)
+file(GLOB_RECURSE sources source/*.cpp)
 
 #add_library(open_string ${headers} ${sources})
-add_library(open_string ${headers})
+add_library(open_string ${headers} ${sources})
 
 target_include_directories(open_string 
     PUBLIC 

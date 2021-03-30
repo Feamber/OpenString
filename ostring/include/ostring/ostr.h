@@ -8,13 +8,6 @@
 
 _NS_OSTR_BEGIN
 
-enum class encoding : char8_t
-{
-	ansi,
-	utf8
-};
-
-
 class OPEN_STRING_EXPORT string
 {
 	friend class string_view;
@@ -32,40 +25,7 @@ public:
 	// and how it's encoded.
 	// @param src: the c-style char.
 	// @param ec: how it's encoded.
-	string(const char* src, size_t length = SIZE_MAX, encoding ec = encoding::ansi)
-		:_surrogate_pair_count(0)
-	{
-		std::string_view sv(src, length);
-
-		switch (ec)
-		{
-		case encoding::ansi:
-		{
-			// ansi is a subset of the first plane
-			//_str.insert(_str.cbegin(), src, src + len);
-			_str = std::u16string(sv.cbegin(), sv.cend());
-			break;
-		}
-		case encoding::utf8:
-		{
-			size_t utf8_length;
-			size_t utf16_length;
-			surrogate_pair pair;
-			const char* end = src + sv.size();
-			while (src < end)
-			{
-				helper::codepoint::utf8_to_utf16((const char8_t*)src, utf8_length, pair, utf16_length);
-				_str.insert(_str.cend(), pair, pair + utf16_length);
-				if (utf16_length == 2) ++_surrogate_pair_count;
-				src += utf8_length;
-			}
-			break;
-		}
-		default:
-			"not supported encoding type when sending in ansi.";
-			break;
-		}
-	}
+	string(const char* src, size_t length = SIZE_MAX);
 
 	// Initializes a new instance of the string class to the value 
 	// indicated by a specified pointer to an array of wide characters,
@@ -107,7 +67,7 @@ public:
 	{}
 
 	string(const string_view& sv)
-		: string(sv._str.data(), sv.origin_length())
+		: string(sv.raw().data(), sv.origin_length())
 	{}
 
 	string(const std::u16string_view& wr)
@@ -237,27 +197,7 @@ public:
 	// @param from: from where to start, 0 if from begin.
 	// @param size: how many chars you want.
 	// @return: the new substring instance
-	string substring(size_t from, size_t size = SIZE_MAX) const
-	{
-		const size_t uint16_size = std::min(size, length() - from);
-		if (_surrogate_pair_count == 0)
-		{
-			/*ret._str.reserve(uint16_size + 1);
-			ret._str.insert(ret._str.cbegin(), _str.cbegin() + from, _str.cbegin() + (from + uint16_size));*/
-			return _str.substr(from, size);
-		}
-		else
-		{
-			auto from_it = helper::string::codepoint_count_to_iterator(_str.cbegin(), from, _str.cend());
-
-			const size_t substr_surrogate_pair_count = _surrogate_pair_count - ((from_it - _str.cbegin()) - from);
-			const size_t real_size = uint16_size + substr_surrogate_pair_count;
-
-			string ret = _str.substr(from_it - _str.cbegin(), real_size);
-			ret._surrogate_pair_count = substr_surrogate_pair_count;
-			return ret;
-		}
-	}
+	string substring(size_t from, size_t size = SIZE_MAX) const;
 
 	// Get the index of specific string
 	// string("abcdefg").index_of("cde") == 2;
@@ -461,7 +401,7 @@ private:
 _NS_OSTR_END
 
 template<>
-struct fmt::formatter<ostr::string, wchar_t>
+struct fmt::formatter<ostr::string, char16_t>
 {
 	template<typename ParseContext>
 	constexpr auto parse(ParseContext& ctx)
@@ -472,6 +412,6 @@ struct fmt::formatter<ostr::string, wchar_t>
 	template<typename FormatContext>
 	auto format(ostr::string str, FormatContext& ctx)
 	{
-		return fmt::format_to(ctx.out(), L"{}", str._str);
+		return fmt::format_to(ctx.out(), u"{}", str._str);
 	}
 };

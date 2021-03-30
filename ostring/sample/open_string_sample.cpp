@@ -6,14 +6,19 @@
 #include <chrono>
 #include <vector>
 #include <iostream>
+#include <olog/olog.h>
 #include "ostring/helpers.h"
 #include "ostring/osv.h"
 #include "ostring/osf.h"
-#include "spdlog/spdlog.h"
 
 int main()
 {
-	spdlog::info("Welcome to spdlog!");
+	using namespace ostr::literal;
+	using namespace std;
+
+	olog::init_log_system();
+	olog::critical(OSTR("abc你φ"));
+
 	return EXIT_SUCCESS;
 }
 

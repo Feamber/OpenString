@@ -97,6 +97,33 @@ namespace helper
 			}
 		}
 
+		inline void utf32_to_utf8(char32_t const utf32, utf8_sequence& out_utf8, size_t& out_utf8_length)
+		{
+			if (utf32 < 0x80)                        // one octet
+			{
+				out_utf8_length = 1;
+				out_utf8[0] = static_cast<uint8_t>(utf32);
+			}
+			else if (utf32 < 0x800) {                // two octets
+				out_utf8_length = 2;
+				out_utf8[0] = static_cast<uint8_t>((utf32 >> 6) | 0xc0);
+				out_utf8[1] = static_cast<uint8_t>((utf32 & 0x3f) | 0x80);
+			}
+			else if (utf32 < 0x10000) {              // three octets
+				out_utf8_length = 3;
+				out_utf8[0] = static_cast<uint8_t>((utf32 >> 12) | 0xe0);
+				out_utf8[1] = static_cast<uint8_t>(((utf32 >> 6) & 0x3f) | 0x80);
+				out_utf8[2] = static_cast<uint8_t>((utf32 & 0x3f) | 0x80);
+			}
+			else {                                // four octets
+				out_utf8_length = 4;
+				out_utf8[0] = static_cast<uint8_t>((utf32 >> 18) | 0xf0);
+				out_utf8[1] = static_cast<uint8_t>(((utf32 >> 12) & 0x3f) | 0x80);
+				out_utf8[2] = static_cast<uint8_t>(((utf32 >> 6) & 0x3f) | 0x80);
+				out_utf8[3] = static_cast<uint8_t>((utf32 & 0x3f) | 0x80);
+			}
+		}
+
 		inline void utf16_to_utf32(char16_t const* const utf16, size_t& out_utf16_length, char32_t& out_utf32, endian e = endian::big)
 		{
 			// assume little endian temporarily
@@ -164,6 +191,18 @@ namespace helper
 			utf8_to_utf32(utf8, out_utf8_length, value);
 			utf32_to_utf16(value, out_utf16_char, out_utf16_length, e);
 		}
+
+		// convert utf16 char(s) into utf8 sequence
+		// @param utf8: the utf8 sequence
+		// @param out_utf8_length: length of utf8 sequence
+		// @param out_utf16_char: utf16 char wich hold the real value of grapheme
+		// @param out_utf16_length: array length of param out_utf16_char, 2 when surrogate pair
+		inline void utf16_to_utf8(char16_t const* const utf16, size_t& out_utf16_length, utf8_sequence& out_utf8, size_t& out_utf8_length, endian e = endian::big)
+		{
+			char32_t value;
+			utf16_to_utf32(utf16, out_utf16_length, value, e);
+			utf32_to_utf8(value, out_utf8, out_utf8_length);
+		}
 	}
 
 	namespace character
@@ -211,7 +250,6 @@ namespace helper
 
 	namespace string
 	{
-
 		template<typename T>
 		inline size_t to_uint(T* str, size_t len)
 		{

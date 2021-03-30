@@ -2,12 +2,12 @@
 
 #include <string_view>
 #include <algorithm>
-
 #include "fmt/format.h"
 
 #include "definitions.h"
 #include "char_types.h"
 #include "helpers.h"
+#include "coder.h"
 
 _NS_OSTR_BEGIN
 
@@ -219,6 +219,16 @@ public:
 		return fmt::format(_str, std::forward<Args>(args)...);
 	}
 
+	constexpr std::u16string_view raw() const
+	{
+		return _str;
+	}
+
+	bool to_utf8(std::string& u8) const
+	{
+		return coder::convert_append(_str, u8);
+	}
+
 private:
 	
 	constexpr string_view(std::u16string_view&& sv)
@@ -247,9 +257,6 @@ private:
 
 private:
 
-	friend class string;
-	friend struct fmt::formatter<ostr::string_view, char16_t>;
-
 	std::u16string_view _str;
 };
 
@@ -266,8 +273,6 @@ namespace literal
 
 _NS_OSTR_END 
 
-
-
 template<>
 struct fmt::formatter<ostr::string_view, char16_t>
 {
@@ -280,7 +285,7 @@ struct fmt::formatter<ostr::string_view, char16_t>
 	template<typename FormatContext>
 	auto format(ostr::string_view sv, FormatContext& ctx)
 	{
-		return fmt::format_to(ctx.out(), u"{}", sv._str);
+		return fmt::format_to(ctx.out(), u"{}", sv.raw());
 	}
 };
 
