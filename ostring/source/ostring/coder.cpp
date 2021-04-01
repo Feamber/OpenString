@@ -8,8 +8,8 @@ _NS_OSTR_BEGIN
 bool coder::convert_append(std::string_view sv8, std::u16string& out_u16)
 {
 	out_u16.reserve(out_u16.size() + sv8.size());
-	size_t utf8_length;
-	size_t utf16_length;
+	small_size_t utf8_length;
+	small_size_t utf16_length;
 	surrogate_pair pair;
 	for (auto it = sv8.cbegin(); it != sv8.cend();)
 	{
@@ -25,8 +25,8 @@ bool coder::convert_append(std::u16string_view sv16, std::string& out_u8)
 {
 	constexpr size_t CHAR_IN_SURROGATE_PAIR = 2;
 	out_u8.reserve(out_u8.size() + sv16.size() * CHAR_IN_SURROGATE_PAIR);
-	size_t utf16_length;
-	size_t utf8_length;
+	small_size_t utf16_length;
+	small_size_t utf8_length;
 	utf8_sequence seq;
 	for (auto it = sv16.cbegin(); it != sv16.cend();)
 	{

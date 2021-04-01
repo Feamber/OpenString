@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 #include "definitions.h"
-#include "char_types.h"
+#include "types.h"
 
 _NS_OSTR_BEGIN
 
@@ -78,7 +78,7 @@ namespace helper
 			return size > 1 ? size : 1 - size;
         }
 
-		inline void utf8_to_utf32(char8_t const* const utf8, size_t& out_utf8_length, char32_t& out_utf32)
+		inline void utf8_to_utf32(char8_t const* const utf8, small_size_t& out_utf8_length, char32_t& out_utf32)
 		{
 			out_utf32 = 0;
 			out_utf8_length = 0; 
@@ -92,12 +92,12 @@ namespace helper
 			{
 				const char8_t ci = utf8[i];
 				out_utf32 <<= UTF8_BIT_SEQUENCE_FOLLOWING;
-				const size_t assert_zero = utf8_sequence_length(ci, utf8_mask);
+				const size_t assert_zero = utf8_sequence_length(ci, utf8_mask); (void)assert_zero;
 				out_utf32 |= ci & (~utf8_mask);
 			}
 		}
 
-		inline void utf32_to_utf8(char32_t const utf32, utf8_sequence& out_utf8, size_t& out_utf8_length)
+		inline void utf32_to_utf8(char32_t const utf32, utf8_sequence& out_utf8, small_size_t& out_utf8_length)
 		{
 			if (utf32 < 0x80)                        // one octet
 			{
@@ -124,7 +124,7 @@ namespace helper
 			}
 		}
 
-		inline void utf16_to_utf32(char16_t const* const utf16, size_t& out_utf16_length, char32_t& out_utf32, endian e = endian::big)
+		inline void utf16_to_utf32(char16_t const* const utf16, small_size_t& out_utf16_length, char32_t& out_utf32, endian e = endian::big)
 		{
 			// assume little endian temporarily
 			out_utf32 = 0;
@@ -157,7 +157,7 @@ namespace helper
 			}
 		}
 
-		inline void utf32_to_utf16(char32_t utf32, surrogate_pair& out_utf16_char, size_t& out_utf16_length, endian e = endian::big)
+		inline void utf32_to_utf16(char32_t utf32, surrogate_pair& out_utf16_char, small_size_t& out_utf16_length, endian e = endian::big)
 		{
 			// assume little endian temporarily
 			if (!utf32) return;
@@ -185,7 +185,7 @@ namespace helper
 		// @param out_utf8_length: length of utf8 sequence
 		// @param out_utf16_char: utf16 char wich hold the real value of grapheme
 		// @param out_utf16_length: array length of param out_utf16_char, 2 when surrogate pair
-		inline void utf8_to_utf16(const char8_t* utf8, size_t& out_utf8_length, surrogate_pair& out_utf16_char, size_t& out_utf16_length, endian e = endian::big)
+		inline void utf8_to_utf16(const char8_t* utf8, small_size_t& out_utf8_length, surrogate_pair& out_utf16_char, small_size_t& out_utf16_length, endian e = endian::big)
 		{
 			char32_t value;
 			utf8_to_utf32(utf8, out_utf8_length, value);
@@ -197,7 +197,7 @@ namespace helper
 		// @param out_utf8_length: length of utf8 sequence
 		// @param out_utf16_char: utf16 char wich hold the real value of grapheme
 		// @param out_utf16_length: array length of param out_utf16_char, 2 when surrogate pair
-		inline void utf16_to_utf8(char16_t const* const utf16, size_t& out_utf16_length, utf8_sequence& out_utf8, size_t& out_utf8_length, endian e = endian::big)
+		inline void utf16_to_utf8(char16_t const* const utf16, small_size_t& out_utf16_length, utf8_sequence& out_utf8, small_size_t& out_utf8_length, endian e = endian::big)
 		{
 			char32_t value;
 			utf16_to_utf32(utf16, out_utf16_length, value, e);

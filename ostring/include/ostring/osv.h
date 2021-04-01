@@ -2,10 +2,11 @@
 
 #include <string_view>
 #include <algorithm>
+#include <iterator> // For std::forward_iterator_tag
+#include <cstddef>  // For std::ptrdiff_t
 #include "fmt/format.h"
-
 #include "definitions.h"
-#include "char_types.h"
+#include "types.h"
 #include "helpers.h"
 #include "coder.h"
 
@@ -15,245 +16,212 @@ class OPEN_STRING_EXPORT string_view
 {
 public:
 
-	constexpr string_view() = default;
+	struct iterator
+	{
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = codepoint;
+		using pointer = value_type*;
+		using reference = value_type&;
 
-	constexpr string_view(const string_view&) = default;
+		using pointer_const = const codepoint*;  // or also value_type*
 
-	constexpr string_view(const char16_t* str)
+		using raw_it = std::u16string_view::iterator;
+		using raw_const_it = std::u16string_view::const_iterator;
+
+		// Should pass param end because method refresh_cp only work for a valid iterator;
+		iterator(raw_it it, raw_const_it end)
+			: _it(it) 
+			, _end(end)
+		{
+			refresh_cp();
+		}
+
+		// const reference operator*() const { return _cp; }	// compile error!
+		const codepoint& operator*() const { return _cp; }
+		pointer_const operator->() { return &_cp; }
+
+		// Prefix increment
+		iterator& operator++() 
+		{ 
+			_it += _len; 
+			refresh_cp();
+			return *this; 
+		}
+
+		// Postfix increment
+		iterator operator++(int) 
+		{ 
+			iterator tmp = *this; 
+			++(*this); 
+			return tmp; 
+		}
+
+		bool operator== (const iterator& rhs) { return _it == rhs._it; }
+		bool operator!= (const iterator& rhs) { return _it != rhs._it; }
+		bool operator< (const iterator& rhs) { return _it < rhs._it; }
+		bool operator> (const iterator& rhs) { return _it > rhs._it; }
+		bool operator<= (const iterator& rhs) { return _it <= rhs._it; }
+		bool operator>= (const iterator& rhs) { return _it >= rhs._it; }
+		size_t operator- (const iterator& rhs) { return (_it - rhs._it) - helper::string::count_surrogate_pair(rhs._it, _it); }
+
+	private:
+
+		void refresh_cp()
+		{
+			if (_it == _end) return;
+			helper::codepoint::utf16_to_utf32(_it.operator->(), _len, _cp);
+		}
+
+	private:
+
+		raw_it _it;
+		raw_const_it _end;
+		codepoint _cp;
+		small_size_t _len;
+
+	};
+
+	using const_iterator = iterator;
+
+	iterator begin() { return iterator(_str.begin(), _str.cend()); }
+	iterator end() { return iterator(_str.end(), _str.cend()); }
+	const_iterator cbegin() const { return iterator(_str.cbegin(), _str.cend()); }
+	const_iterator cend() const { return iterator(_str.cend(), _str.cend()); }
+	const_iterator begin() const { return cbegin(); }
+	const_iterator end() const { return cend(); }
+
+	constexpr string_view() noexcept = default;
+
+	constexpr string_view(const string_view&) noexcept = default;
+
+	constexpr string_view(const char16_t* str) noexcept
 		: _str(str)
 	{}
 
-	constexpr string_view(const char16_t* str, size_t count)
+	constexpr string_view(const char16_t* str, size_t count) noexcept
 		: _str(str, count)
 	{}
 
-	constexpr string_view(std::u16string_view sv)
+	constexpr string_view(std::u16string_view sv) noexcept
 		: _str(sv)
 	{}
 	
-	int compare(const string_view& rhs) const
-	{
-		return _str.compare(rhs._str);
-	}
+	[[nodiscard]] int compare(const string_view& rhs) const noexcept;
 
-	bool operator==(const string_view& rhs) const
-	{
-		if (length() != rhs.length()) return false;
-		return compare(rhs) == 0;
-	}
+	[[nodiscard]] bool operator==(const string_view& rhs) const noexcept;
 
-	bool operator!=(const string_view& rhs) const
+	[[nodiscard]] inline bool operator!=(const string_view& rhs) const noexcept
 	{
 		return !operator==(rhs);
 	}
 
-	bool operator<(const string_view& rhs) const
+	[[nodiscard]] inline bool operator<(const string_view& rhs) const noexcept
 	{
 		return compare(rhs) < 0;
 	}
 
-	bool operator<=(const string_view& rhs) const
+	[[nodiscard]] inline bool operator<=(const string_view& rhs) const noexcept
 	{
 		return compare(rhs) <= 0;
 	}
 
-	bool operator>(const string_view& rhs) const
+	[[nodiscard]] inline bool operator>(const string_view& rhs) const noexcept
 	{
 		return compare(rhs) > 0;
 	}
 
-	bool operator>=(const string_view& rhs) const
+	[[nodiscard]] inline bool operator>=(const string_view& rhs) const noexcept
 	{
 		return compare(rhs) >= 0;
 	}
 
-	[[nodiscard]] constexpr size_t origin_length() const noexcept
+	[[nodiscard]] inline constexpr size_t origin_length() const noexcept
 	{
 		return _str.length();
 	}
 
-	[[nodiscard]] size_t length() const noexcept
-	{
-		size_t count_sp = helper::string::count_surrogate_pair(_str.cbegin(), _str.cend());
-		return _str.length() - count_sp;
-	}
+	[[nodiscard]] size_t length() const noexcept;
 
-	[[nodiscard]] constexpr bool empty() const noexcept
+	[[nodiscard]] inline constexpr bool empty() const noexcept
 	{
 		return origin_length() == 0;
 	}
 
-	void remove_prefix(size_t count) noexcept
-	{
-		count = helper::string::codepoint_count_to_iterator(_str.cbegin(), count, _str.cend()) - _str.cbegin();
-		_str.remove_prefix(count);
-	}
+	[[nodiscard]] string_view remove_prefix(size_t count) const noexcept;
 
-	void remove_suffix(size_t count) noexcept
-	{
-		count = helper::string::codepoint_count_to_iterator_backward(_str.crbegin(), count, _str.crend()) - _str.crbegin();
-		_str.remove_suffix(count);
-	}
+	[[nodiscard]] string_view remove_suffix(size_t count) const noexcept;
 
-	string_view remove_prefix_copy(size_t count) noexcept
-	{
-		string_view sv(*this);
-		sv.remove_prefix(count);
-		return sv;
-	}
+	[[nodiscard]] string_view left(size_t count) const noexcept;
 
-	string_view remove_suffix_copy(size_t count) noexcept
-	{
-		string_view sv(*this);
-		sv.remove_suffix(count);
-		return sv;
-	}
+	[[nodiscard]] string_view right(size_t count) const noexcept;
 	
-	[[nodiscard]] string_view substring(size_t offset = 0, size_t count = SIZE_MAX) const
-	{
-		convert_codepoint_into_index(offset, count);
-		return string_view(_str.substr(offset, count));
-	}
+	[[nodiscard]] string_view substring(size_t offset = 0, size_t count = SIZE_MAX) const noexcept;
 
-	[[nodiscard]] size_t index_of(const string_view& pattern, case_sensitivity cs = case_sensitivity::sensitive) const
-	{
-		auto& predicate = helper::character::case_predicate<wchar_t>(cs);
+	[[nodiscard]] size_t index_of(const string_view& pattern, case_sensitivity cs = case_sensitivity::sensitive) const noexcept;
 
-		auto it = std::search(
-			_str.cbegin(), _str.cend()
-			, pattern._str.cbegin(), pattern._str.cend(),
-			predicate
-		);
-
-		if (it == _str.cend()) return SIZE_MAX;
-
-		const size_t index_found = it - _str.cbegin();
-		return position_index_to_codepoint(index_found);
-	}
-
-	[[nodiscard]] size_t last_index_of(string_view pattern, case_sensitivity cs = case_sensitivity::sensitive) const
-	{
-		auto& predicate = helper::character::case_predicate<wchar_t>(cs);
-
-		auto it = std::search(
-			_str.crbegin(), _str.crend()
-			, pattern._str.crbegin(), pattern._str.crend(),
-			predicate
-		);
-
-		if (it == _str.crend()) return SIZE_MAX;
-		const size_t index_found = _str.crend() - it - pattern.length();
-		return position_index_to_codepoint(index_found);
-	}
+	[[nodiscard]] size_t last_index_of(string_view pattern, case_sensitivity cs = case_sensitivity::sensitive) const noexcept;
 
 	template<typename F>
-	size_t search(F&& predicate)
+	[[nodiscard]] size_t search(F&& predicate) const noexcept
 	{
-		return std::find_if(_str.cbegin(), _str.cend(), std::forward<F>(predicate)) - _str.cbegin();
+		auto it_begin = cbegin();
+		auto it_end = cend();
+		auto it = std::find_if(it_begin, it_end, std::forward<F>(predicate));
+		if (it == it_end) return SIZE_MAX;
+		return it - it_begin;
 	}
 
-	bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const
-	{
-		const size_t splitter_index = index_of(splitter);
-		if (splitter_index == SIZE_MAX) return false;
-		if (lhs) *lhs = substring(0, splitter_index);
-		if (rhs) *rhs = substring(splitter_index + 1);
-		return true;
-	}
+	bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const noexcept;
 
-	size_t split(const string_view& splitter, std::vector<string_view>& str, bool cull_empty = false) const
-	{
-		string_view lhs;
-		string_view rhs = *this;
-		size_t split_times = 0;
-		while (rhs.split(splitter, &lhs, &rhs))
-		{
-			if(!cull_empty || !lhs.empty())
-				str.push_back(std::move(lhs));
-			++split_times;
-		}
-		if (!cull_empty || !rhs.empty())
-			str.push_back(rhs);
-		return split_times;
-	}
+	size_t split(const string_view& splitter, std::vector<string_view>& str, bool cull_empty = false) const noexcept;
 
-	bool start_with(const string_view& sv_start) const
+	[[nodiscard]] inline bool start_with(const string_view& sv_start) const noexcept
 	{
 		return substring(0, sv_start.length()) == sv_start;
 	}
 
-	bool ends_with(const string_view& sv_start) const
+	[[nodiscard]] inline bool end_with(const string_view& sv_start) const noexcept
 	{
 		return substring(length() - sv_start.length(), sv_start.length()) == sv_start;
 	}
 
-	string_view trim_start() const
-	{
-		size_t begin = 0;
-		while (_str.data()[begin] == ' ')
-			++begin;
-		return substring(begin);
-	}
+	[[nodiscard]] string_view trim_start() const noexcept;
 
-	string_view trim_end() const
-	{
-		size_t end = index_of(u" ");
-		return substring(0, end);
-	}
+	[[nodiscard]] string_view trim_end() const noexcept;
 
-	string_view trim() const
+	[[nodiscard]] inline string_view trim() const noexcept
 	{
 		return trim_start().trim_end();
 	}
 
-	[[nodiscard]] int to_int() const
-	{
-		int value = 0;
-		string_view sv = trim();
-		for (const auto& c : sv._str)
-			value = value * 10 + c - OCHAR('0');
-		return value;
-	}
+	[[nodiscard]] int to_int() const noexcept;
 
 	// format string
 	// format rule: fmtlib @ https://github.com/fmtlib/fmt
 	template<typename...Args>
-	std::u16string format(Args&&...args) const
+	[[nodiscard]] std::u16string format(Args&&...args) const
 	{
 		return fmt::format(_str, std::forward<Args>(args)...);
 	}
 
-	constexpr std::u16string_view raw() const
+	[[nodiscard]] constexpr std::u16string_view raw() const noexcept
 	{
 		return _str;
 	}
 
-	bool to_utf8(std::string& u8) const
+	[[nodiscard]] bool to_utf8(std::string& u8) const noexcept
 	{
 		return coder::convert_append(_str, u8);
 	}
 
 private:
 
-	size_t position_codepoint_to_index(size_t codepoint_count_to_iterator) const
-	{
-		auto from_it = helper::string::codepoint_count_to_iterator(_str.cbegin(), codepoint_count_to_iterator, _str.cend());
-		return from_it - _str.cbegin();
-	}
+	size_t position_codepoint_to_index(size_t codepoint_count_to_iterator) const noexcept;
 
-	size_t position_index_to_codepoint(size_t index) const
-	{
-		return index - helper::string::count_surrogate_pair(_str.cbegin(), _str.cbegin() + index);
-	}
+	size_t position_index_to_codepoint(size_t index) const noexcept;
 
-	void convert_codepoint_into_index(size_t& from, size_t& count) const
-	{
-		const size_t index = position_codepoint_to_index(from);
-		const size_t b = std::min(count, _str.size() - from);
-		const size_t real_size = position_codepoint_to_index(from + b) - index;
-		from = index; 
-		count = real_size;
-	}
+	void convert_codepoint_into_index(size_t& from, size_t& count) const noexcept;
 
 private:
 
@@ -262,13 +230,10 @@ private:
 
 namespace literal
 {
-#pragma warning(push)
-#pragma warning(disable: 455)
-	constexpr string_view operator""o(const char16_t* str, size_t len)
+	[[nodiscard]] inline constexpr string_view operator""_o(const char16_t* str, size_t len) noexcept
 	{
 		return string_view(str, len);
 	}
-#pragma warning(pop)
 }
 
 _NS_OSTR_END 

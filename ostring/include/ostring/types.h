@@ -5,8 +5,11 @@ _NS_OSTR_BEGIN
 
 using char8_t = unsigned char;
 
-using surrogate_pair = char16_t[2];
 using utf8_sequence = char8_t[4];
+using surrogate_pair = char16_t[2];
+using codepoint = char32_t;
+
+using small_size_t = unsigned short;
 
 enum class endian : uint8_t
 {

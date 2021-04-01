@@ -10,6 +10,7 @@
 #include "ostring/helpers.h"
 #include "ostring/osv.h"
 #include "ostring/osf.h"
+#include <spdlog/spdlog.h>
 
 int main()
 {
@@ -24,6 +25,8 @@ int main()
 	olog::warn("this is a warning.");
 	LOG_FFL olog::error(OSTR("this is an error message."));
 	olog::fatal("this is an {} message.", "fatal");
+
+	olog::fatal(u"♂"o);
 
 	return EXIT_SUCCESS;
 }

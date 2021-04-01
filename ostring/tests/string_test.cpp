@@ -1,7 +1,29 @@
-﻿/*#include "CppUnitTest.h"
-#include "../ostring/string.h"
+﻿
+#include <gtest/gtest.h>
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+#include "ostring/ostr.h"
+
+namespace ostr {
+	TEST(construct, literal) {
+		using namespace ostr;
+		using namespace ostr::literal;
+
+		string str_inconst = u"a"_o;
+		EXPECT_EQ(1, str_inconst.length());
+
+		string sv_constexpr = u"bb"_o;
+		EXPECT_EQ(2, sv_constexpr.length());
+
+		str_inconst = u"你😀"_o;
+		EXPECT_EQ(2, str_inconst.length());
+
+		str_inconst = sv_constexpr;
+		EXPECT_EQ(2, str_inconst.length());
+	}
+}
+
+
+/*using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace test_string
 {

@@ -353,3 +353,5 @@ MigrationBackup/
 .ionide/
 ostring/out/
 ostring/sample/out/
+ostring/build/
+ostring/extern/out/

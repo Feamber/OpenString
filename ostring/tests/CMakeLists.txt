@@ -1,7 +1,6 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
 project(open_string_tests)
 
-# GoogleTest requires at least C++11
 set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
@@ -15,14 +14,23 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(open_string_test
-	test_main.cpp
+add_executable(open_string_tests
+	"test_main.cpp"
+	"helper_test.cpp"
+	"string_test.cpp"
+	"string_view_test.cpp"
+	"function_test.cpp"
 )
-target_link_libraries(open_string_test
+target_link_libraries(open_string_tests
 	gtest_main
+	open_string
 )
 
-add_subdirectory(string_view)
+target_include_directories(open_string_tests 
+    PUBLIC 
+    ostring/include/
+    ${PLATFORM_INCLUDES}
+)
 
 include(GoogleTest)
-gtest_discover_tests(open_string_test)
+gtest_discover_tests(open_string_tests)

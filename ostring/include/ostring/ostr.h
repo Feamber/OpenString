@@ -6,6 +6,8 @@
 #include "helpers.h"
 #include "osv.h"
 
+// TODO: move impl to cpp
+
 _NS_OSTR_BEGIN
 
 class OPEN_STRING_EXPORT string
@@ -33,8 +35,7 @@ public:
 	// @param src: the c-style wide char.
 	// @param ec: what's the endian it is.
 	string(const char16_t* src, size_t length = SIZE_MAX)
-		:_surrogate_pair_count(0)
-		, _str(src, 0, length)
+		: _str(src, 0, length)
 	{
 		calculate_surrogate();
 	}
@@ -59,6 +60,12 @@ public:
 		calculate_surrogate();
 	}
 
+	string(const std::u16string_view& sv)
+		: _str(sv)
+	{
+		calculate_surrogate();
+	}
+
 	// Initializes a new instance of the string class with std::string.
 	// @param str: the string used to init.
 	// @param count: how may c.
@@ -67,36 +74,37 @@ public:
 	{}
 
 	string(const string_view& sv)
-		: string(sv.raw().data(), sv.origin_length())
-	{}
+		: _str(sv.raw())
+	{
+		calculate_surrogate();
+	}
 
-	string(const std::u16string_view& wr)
-		: string(wr.data(), wr.size())
-	{}
+	string& operator=(const string_view& sv)
+	{
+		*this = string(sv);
+		return *this;
+	}
 
-	operator const string_view() const
+	inline operator const string_view() const
 	{
 		return to_sv();
 	}
 
-	string_view to_sv() const
+	[[nodiscard]] inline string_view to_sv() const
 	{
 		return _str.c_str();
 	}
 
 	// @return: the length of string.
-	size_t length() const
-	{
-		return _str.size() - _surrogate_pair_count;
-	}
+	size_t length() const;
 
 	// @return: whether this string is empty.
-	bool is_empty() const
+	[[nodiscard]] inline bool is_empty() const
 	{
 		return length() == 0;
 	}
 
-	int compare(const string& rhs) const
+	[[nodiscard]] inline int compare(const string& rhs) const
 	{
 		return _str.compare(rhs._str);
 	}
@@ -104,7 +112,7 @@ public:
 	// Are they totally equal?
 	// @param rhs: another string.
 	// @return: true if totally equal.
-	bool operator==(const string& rhs) const
+	[[nodiscard]] inline bool operator==(const string& rhs) const
 	{
 		return _str == rhs._str;
 	}
@@ -112,7 +120,7 @@ public:
 	// Are they different?
 	// @param rhs: another string.
 	// @return: true if different.
-	bool operator!=(const string& rhs) const
+	[[nodiscard]] inline bool operator!=(const string& rhs) const
 	{
 		return _str != rhs._str;
 	}
@@ -120,7 +128,7 @@ public:
 	// Compare with unicode value.
 	// @param rhs: another string.
 	// @return: true if less than rhs.
-	bool operator<(const string& rhs) const
+	[[nodiscard]] inline bool operator<(const string& rhs) const
 	{
 		return _str < rhs._str;
 	}
@@ -128,7 +136,7 @@ public:
 	// Compare with unicode value.
 	// @param rhs: another string.
 	// @return: true if less than or equal to rhs.
-	bool operator<=(const string& rhs) const
+	[[nodiscard]] inline bool operator<=(const string& rhs) const
 	{
 		return _str <= rhs._str;
 	}
@@ -136,7 +144,7 @@ public:
 	// Compare with unicode value.
 	// @param rhs: another string.
 	// @return: true if greater thsn rhs.
-	bool operator>(const string& rhs) const
+	[[nodiscard]] inline bool operator>(const string& rhs) const
 	{
 		return _str > rhs._str;
 	}
@@ -144,7 +152,7 @@ public:
 	// Compare with unicode value.
 	// @param rhs: another string.
 	// @return: true if greater than or equal to rhs.
-	bool operator>=(const string& rhs) const
+	[[nodiscard]] inline bool operator>=(const string& rhs) const
 	{
 		return _str >= rhs._str;
 	}
@@ -153,44 +161,13 @@ public:
 	// string("this") + "rhs" == string("thisrhs")
 	// @param rhs: append rhs back this string.
 	// @return: ref this string.
-	string& operator+=(const string& rhs)
-	{
-		_str += rhs._str;
-		_surrogate_pair_count += rhs._surrogate_pair_count;
-		return *this;
-	}
+	string& operator+=(const string& rhs);
 
 	// Append back, get a new string instance without modify this string.
 	// string("this") + "rhs" == string("thisrhs")
 	// @param rhs: append rhs back this string.
 	// @return: a new result string instance.
-	string operator+(const string& rhs)
-	{
-		string str = *this;
-		str += rhs;
-		return str;
-	}
-
-	// Append back.
-	// @param rhs: append rhs back this string.
-	// @return: ref this string.
-	/*template<typename T>
-	string& operator+=(T rhs)
-	{
-		_str.append(to_string(rhs));
-		return *this;
-	}*/
-
-	// Append back, get a new string instance without modify this string.
-	// @param rhs: append rhs back this string.
-	// @return: a new result string instance.
-	/*template<typename T>
-	string operator+(T rhs)
-	{
-		string str = *this;
-		str += rhs;
-		return str;
-	}*/
+	string operator+(const string& rhs);
 
 	// Get a new substring from specific position with specific size
 	// string("abcdefg").substring(2, 3) == string("cde");
@@ -206,10 +183,7 @@ public:
 	// @param length: how many length in this string to search, that means, searching from "from" to "from + length".
 	// @return: the new substring instance
 
-	size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const
-	{
-		return static_cast<string_view>(*this).substring(from, length).index_of(substr, cs) + from;
-	}
+	size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const;
 
 	// Get the last index of specific string
 	// string("123321123").last_index_of("123") == 6;
@@ -241,68 +215,24 @@ public:
 
 	}*/
 
-	bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const
-	{
-		string_view sv = *this;
-		return sv.split(splitter, lhs, rhs);
-	}
+	bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const;
 
-	size_t split(const string_view& splitter, std::vector<string_view>& str) const
-	{
-		string_view sv = *this;
-		return sv.split(splitter, str);
-	}
+	size_t split(const string_view& splitter, std::vector<string_view>& str) const;
 
 	template<typename F>
-	size_t search(F&& predicate)
+	[[nodiscard]] size_t search(F&& predicate) const
 	{
 		return std::find_if(_str.cbegin(), _str.cend(), std::forward<F>(predicate)) - _str.cbegin();
 	}
 
-	string& replace(size_t from, size_t count, const string& dest, case_sensitivity cs = case_sensitivity::sensitive)
-	{
-		size_t len = _str.size();
+	[[nodiscard]] string& replace(size_t from, size_t count, const string& dest, case_sensitivity cs = case_sensitivity::sensitive);
 
-		count = position_codepoint_to_index(from + count);
-		from = position_codepoint_to_index(from);
-		count -= from;
-
-		_str.replace(_str.cbegin() + from, _str.cbegin() + from + count, dest._str.c_str());
-		calculate_surrogate();
-
-		return *this;
-	}
-
-	string& replace(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive)
-	{
-		// src should NOT be empty!
-		if (src.is_empty()) return *this; // ASSERT!
-
-		size_t len = _str.size();
-		size_t index = 0;
-		index = index_of(src, index, SIZE_MAX, cs);
-
-		while (index < len)
-		{
-			_str.replace(_str.cbegin() + index, _str.cbegin() + index + src._str.size(), dest._str.c_str());
-			// split into two steps beware of negative number when use type size_t
-			_surrogate_pair_count += dest._surrogate_pair_count;
-			_surrogate_pair_count -= src._surrogate_pair_count;
-			index += dest._str.size();
-			index = index_of(src, index, SIZE_MAX, cs);
-		}
-		return *this;
-	}
+	[[nodiscard]] string& replace(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive);
 
 	// Returns a new string in which all occurrences of a specified string in the current instance
 	// are replaced with another specified string.
 	// @return: how many substrings have been replaced
-	string replace_copy(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive) const
-	{
-		string new_inst(*this);
-		new_inst.replace(src, dest, cs);
-		return new_inst;
-	}
+	[[nodiscard]] string replace_copy(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive) const;
 
 	template<typename...Args>
 	string format(Args&&...args) const
@@ -310,69 +240,34 @@ public:
 		return fmt::format(_str.c_str(), go_str(std::forward<Args>(args))...);
 	}
 
-	void trim_start()
-	{
-		_str.erase(_str.begin(), std::find_if(_str.begin(), _str.end(), [](auto ch) {
-			return !std::isspace(ch);
-		}));
-	}
+	void trim_start();
 
-	void trim_end()
-	{
-		_str.erase(std::find_if(_str.rbegin(), _str.rend(), [](auto ch) {
-			return !std::isspace(ch);
-		}).base(), _str.end());
-	}
+	void trim_end();
 
-	void trim()
+	inline void trim()
 	{
 		trim_start();
 		trim_end();
 	}
 
-	string trim_start_copy()
-	{
-		string ret(*this);
-		ret.trim_start();
-		return ret;
-	}
+	[[nodiscard]] string trim_start_copy();
 
-	string trim_end_copy()
-	{
-		string ret(*this);
-		ret.trim_end();
-		return ret;
-	}
+	[[nodiscard]] string trim_end_copy();
 
-	string trim_copy()
-	{
-		string ret(*this);
-		ret.trim();
-		return ret;
-	}
+	[[nodiscard]] string trim_copy();
 
-	std::u16string_view raw() const
+	[[nodiscard]] inline std::u16string_view raw() const
 	{
 		return _str;
 	}
 
 private:
 
-	void calculate_surrogate()
-	{
-		_surrogate_pair_count = helper::string::count_surrogate_pair(_str.cbegin(), _str.cend());
-	}
+	void calculate_surrogate();
 
-	size_t position_codepoint_to_index(size_t codepoint_count_to_iterator) const
-	{
-		auto from_it = helper::string::codepoint_count_to_iterator(_str.cbegin(), codepoint_count_to_iterator, _str.cend());
-		return from_it - _str.cbegin();
-	}
+	size_t position_codepoint_to_index(size_t codepoint_count_to_iterator) const;
 
-	size_t position_index_to_codepoint(size_t index) const
-	{
-		return index - helper::string::count_surrogate_pair(_str.cbegin(), _str.cbegin() + index);
-	}
+	size_t position_index_to_codepoint(size_t index) const;
 
 	template<class T>
 	struct is_c_str : std::integral_constant
