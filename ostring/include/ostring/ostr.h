@@ -86,8 +86,7 @@ public:
 	string(const std::basic_string<T>& str)
 	{
 		using ut = std::make_unsigned_t< T >;
-		std::basic_string_view<ut> sv(str);
-		_str = std::u16string(sv.cbegin(), sv.cend());
+		_str = std::u16string((const ut*)str.data(), (const ut*)(str.data() + str.size()));
 		calculate_surrogate();
 	}
 
@@ -95,8 +94,7 @@ public:
 	string(std::basic_string_view<T> str)
 	{
 		using ut = std::make_unsigned_t< T >;
-		std::basic_string_view<ut> sv(str);
-		_str = std::u16string(sv.cbegin(), sv.cend());
+		_str = std::u16string((const ut*)str.data(), (const ut*)(str.data() + str.size()));
 		calculate_surrogate();
 	}
 

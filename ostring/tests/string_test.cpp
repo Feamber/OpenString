@@ -8,6 +8,13 @@ TEST(ostr, literal)
 	using namespace ostr;
 	using namespace ostr::literal;
 
+	const char* str_cp = "this is a const char pointer";
+	std::string str_std = "this is a std::string";
+	std::string_view str_stdsv = "this is a std::string_view";
+
+	string str_from_cp(str_cp);
+	string str_from_std(str_std);
+	string str_from_stdsv(str_stdsv);
 	string str_default_ctor;
 	string str_empty_ansi("");
 	string str_empty_wide(u""_o);
@@ -26,6 +33,9 @@ TEST(ostr, literal)
 	string str_ctor_substring1(u"123321", 3);
 	string str_ctor_substring2(u"123"_o);
 
+	EXPECT_TRUE(str_from_cp == str_cp);
+	EXPECT_TRUE(str_from_std == str_std);
+	EXPECT_TRUE(str_from_stdsv == str_stdsv);
 	EXPECT_TRUE(str_default_ctor == str_default_ctor);
 	EXPECT_TRUE(str_default_ctor == str_empty_ansi);
 	EXPECT_TRUE(str_empty_ansi == str_empty_wide);
