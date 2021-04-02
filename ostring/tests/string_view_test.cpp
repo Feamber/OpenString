@@ -135,8 +135,8 @@ namespace osv {
 				EXPECT_EQ(4, i);
 			}
 			{
-				size_t i = sv.last_index_of(u"😘"_o);
-				EXPECT_EQ(3, i);
+				size_t i = sv.last_index_of(u"😘我"_o);
+				EXPECT_EQ(2, i);
 			}
 			{
 				size_t i = sv.last_index_of(u"我"_o);

@@ -177,7 +177,36 @@ TEST(ostr, index_of)
 		EXPECT_EQ(1, str_src1.index_of(str_to_find1));
 		EXPECT_EQ(3, str_src1.index_of(str_to_find3));
 		EXPECT_EQ(2, str_src1.index_of(str_to_find1, 2));
-		EXPECT_EQ(2, str_src1.index_of(str_to_find2, 2, 2));
+		EXPECT_EQ(SIZE_MAX, str_src1.index_of(str_to_find2, 3, 2));
+	}
+}
+
+TEST(ostr, last_index_of)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
+
+	{
+		string str_src1("1231234");
+		string str_to_find1("123");
+		string str_to_find2(u"1234"_o);
+
+		EXPECT_EQ(3, str_src1.last_index_of(str_to_find1));
+		EXPECT_EQ(3, str_src1.last_index_of(str_to_find2));
+		EXPECT_EQ(3, str_src1.last_index_of(str_to_find1, 2));
+		EXPECT_EQ(SIZE_MAX, str_src1.last_index_of(str_to_find1, 2, 3));
+	}
+
+	{
+		string str_src1(u"我n😘😘ni");
+		string str_to_find1(u"😘"_o);
+		string str_to_find2(u"😘n");
+		string str_to_find3("n");
+
+		EXPECT_EQ(3, str_src1.last_index_of(str_to_find1));
+		EXPECT_EQ(4, str_src1.last_index_of(str_to_find3));
+		EXPECT_EQ(3, str_src1.last_index_of(str_to_find1, 3));
+		EXPECT_EQ(SIZE_MAX, str_src1.last_index_of(str_to_find2, 2, 2));
 	}
 }
 
@@ -211,7 +240,7 @@ TEST(ostr, replace)
 	{
 		string str("1231234");
 
-		str.replace_origin(3, 2, "");
+		str.replace_origin(3, 2, u""_o);
 		EXPECT_TRUE(str == "12334");
 	}
 	{
@@ -221,7 +250,7 @@ TEST(ostr, replace)
 	}
 	{
 		string str(u"我♂😘Cれ");
-		str.replace_origin(1, 2, u"™").replace_origin(2, 1, "3");
+		str.replace_origin(1, 2, u"™").replace_origin(2, 1, u"3"_o);
 
 		EXPECT_TRUE(str == u"我™3れ"_o);
 	}

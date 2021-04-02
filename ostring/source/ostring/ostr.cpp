@@ -43,9 +43,20 @@ string string::substring(size_t from, size_t size) const
 	}
 }
 
-size_t string::index_of(const string& substr, size_t from, size_t length, case_sensitivity cs) const
+size_t string::index_of(const string_view& substr, size_t from, size_t length, case_sensitivity cs) const
 {
-	size_t ind = static_cast<string_view>(*this).substring(from, length).index_of(substr, cs);
+	size_t ind = static_cast<string_view>(*this)
+		.substring(from, length)
+		.index_of(substr, cs);
+	if (ind == SIZE_MAX) return SIZE_MAX;
+	return ind + from;
+}
+
+size_t string::last_index_of(const string_view& substr, size_t from, size_t length, case_sensitivity cs) const
+{
+	size_t ind = static_cast<string_view>(*this)
+		.substring(from, length)
+		.last_index_of(substr, cs);
 	if (ind == SIZE_MAX) return SIZE_MAX;
 	return ind + from;
 }
@@ -62,13 +73,13 @@ size_t string::split(const string_view& splitter, std::vector<string_view>& str)
 	return sv.split(splitter, str);
 }
 
-string& string::replace_origin(size_t from, size_t count, const string& dest, case_sensitivity cs)
+string& string::replace_origin(size_t from, size_t count, const string_view& dest, case_sensitivity cs)
 {
 	count = position_codepoint_to_index(from + count);
 	from = position_codepoint_to_index(from);
 	count -= from;
 
-	_str.replace(_str.cbegin() + from, _str.cbegin() + from + count, dest._str.c_str());
+	_str.replace(_str.cbegin() + from, _str.cbegin() + from + count, dest.raw());
 	calculate_surrogate();
 
 	return *this;
@@ -122,21 +133,21 @@ string& string::trim_end()
 	return *this;
 }
 
-string string::trim_start_copy()
+string string::trim_start_copy() const
 {
 	string ret(*this);
 	ret.trim_start();
 	return ret;
 }
 
-string string::trim_end_copy()
+string string::trim_end_copy() const
 {
 	string ret(*this);
 	ret.trim_end();
 	return ret;
 }
 
-string string::trim_copy()
+string string::trim_copy() const
 {
 	string ret(*this);
 	ret.trim();

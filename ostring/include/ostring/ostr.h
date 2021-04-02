@@ -50,22 +50,21 @@ public:
 		calculate_surrogate();
 	}
 
-	// Initializes a new instance of the string class to the value 
-	// indicated by a specified pointer to an array of wide characters,
+	// Initializes a new instance of the string class with the value 
+	// indicated by a specified pointer to a pointer to 16-bit characters,
 	// and the endian it is.
-	// @param src: the c-style wide char.
-	// @param ec: what's the endian it is.
+	// @param src: the c-style 16-bit characters.
 	string(const char16_t* src)
 		: _str(src)
 	{
 		calculate_surrogate();
 	}
 
-	// Initializes a new instance of the string class to the value 
-	// indicated by a specified pointer to an array of wide characters,
+	// Initializes a new instance of the string class with the value 
+	// indicated by a specified pointer to a pointer to 16-bit characters,
 	// and the endian it is.
 	// @param src: the c-style wide char.
-	// @param ec: what's the endian it is.
+	// @param length: how many count to use.
 	string(const char16_t* src, size_t length)
 		: _str(src, length)
 	{
@@ -83,8 +82,6 @@ public:
 		_str.resize(count, c);
 	}
 
-	// @param str: the string used to init.
-	// @param count: how may c.
 	template<typename T>
 	string(const std::basic_string<T>& str)
 	{
@@ -94,8 +91,6 @@ public:
 		calculate_surrogate();
 	}
 
-	// @param str: the string used to init.
-	// @param count: how may c.
 	template<typename T>
 	string(std::basic_string_view<T> str)
 	{
@@ -105,9 +100,6 @@ public:
 		calculate_surrogate();
 	}
 
-	// Initializes a new instance of the string class with std::wstring.
-	// @param str: the wstring used to init.
-	// @param count: how may c.
 	string(const std::u16string& str)
 		: _str(str)
 	{
@@ -222,39 +214,11 @@ public:
 	// @param substr: substring to search.
 	// @param from: from where to search.
 	// @param length: how many length in this string to search, that means, searching from "from" to "from + length".
-	// @return: the new substring instance
+	// @return: the index of where the string first found
 
-	[[nodiscard]] size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const;
+	[[nodiscard]] size_t index_of(const string_view& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const;
 
-	// Get the last index of specific string
-	// string("123321123").last_index_of("123") == 6;
-	// @param substr: substring to search.
-	// @param from: from where to search.
-	// @param length: how many length in this string to search, that means, searching from "from" to "from + length".
-	// @return: the new substring instance
-	/*size_t last_index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const
-	{
-		// f(a) = c
-		// f(a+b) = c+d
-		// d = f(a+b)-c
-		const size_t index = position_codepoint_to_index(from);	// index <-> c
-		const size_t b = std::min(length, _str.size() - from);
-		const size_t real_size = position_codepoint_to_index(from + b) - index;
-
-		auto& predicate = helper::character::case_predicate<wchar_t>(cs);
-
-		auto it = std::search(
-			_str.cbegin() + index, _str.cbegin() + index + real_size
-			, substr._str.cbegin(), substr._str.cend(),
-			predicate
-		);
-
-		if (it == _str.cend()) return SIZE_MAX;
-
-		const size_t index_found = it - _str.cbegin();
-		return position_index_to_codepoint(index_found);
-
-	}*/
+	[[nodiscard]] size_t last_index_of(const string_view& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const;
 
 	bool split(const string_view& splitter, string_view* lhs, string_view* rhs) const;
 
@@ -266,7 +230,7 @@ public:
 		return string_view(*this).search(predicate);
 	}
 
-	string& replace_origin(size_t from, size_t count, const string& dest, case_sensitivity cs = case_sensitivity::sensitive);
+	string& replace_origin(size_t from, size_t count, const string_view& dest, case_sensitivity cs = case_sensitivity::sensitive);
 
 	string& replace_origin(const string_view& src, const string_view& dest, case_sensitivity cs = case_sensitivity::sensitive);
 
@@ -290,11 +254,11 @@ public:
 		return trim_start().trim_end();
 	}
 
-	[[nodiscard]] string trim_start_copy();
+	[[nodiscard]] string trim_start_copy() const;
 
-	[[nodiscard]] string trim_end_copy();
+	[[nodiscard]] string trim_end_copy() const;
 
-	[[nodiscard]] string trim_copy();
+	[[nodiscard]] string trim_copy() const;
 
 	[[nodiscard]] inline std::u16string_view raw() const
 	{

@@ -82,7 +82,7 @@ size_t string_view::last_index_of(string_view pattern, case_sensitivity cs) cons
 	);
 
 	if (it == _str.crend()) return SIZE_MAX;
-	const size_t index_found = _str.crend() - it - pattern.length();
+	const size_t index_found = _str.crend() - it - pattern.origin_length();
 	return this->position_index_to_codepoint(index_found);
 }
 
