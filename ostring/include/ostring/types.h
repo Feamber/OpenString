@@ -21,7 +21,7 @@ enum class case_sensitivity : uint8_t
 {
 	sensitive,
 	insensitive
-};
+}; 
 
 _NS_OSTR_END
 

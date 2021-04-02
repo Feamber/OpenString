@@ -4,21 +4,22 @@
 #include "ostring/ostr.h"
 
 namespace osv {
-	TEST(prop, length)
+	TEST(osv, length)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
-		constexpr size_t a = u"an"_o.origin_length();
+
 		EXPECT_EQ(2, u"an"_o.length());
-		EXPECT_FALSE(u"an"_o.empty());
+		EXPECT_EQ(2, u"an"_o.origin_length());
+		EXPECT_FALSE(u"an"_o.is_empty());
 		EXPECT_EQ(0, u""_o.length());
-		EXPECT_TRUE(u""_o.empty());
+		EXPECT_TRUE(u""_o.is_empty());
 		EXPECT_EQ(7, u"我😘😘ni"_o.origin_length());
 		EXPECT_EQ(5, u"我😘😘ni"_o.length());
-		EXPECT_FALSE(u"我😘😘ni"_o.empty());
+		EXPECT_FALSE(u"我😘😘ni"_o.is_empty());
 	}
 
-	TEST(construct, literal) {
+	TEST(osv, literal) {
 		using namespace ostr;
 		using namespace ostr::literal;
 
@@ -36,7 +37,7 @@ namespace osv {
 		EXPECT_EQ(2, sv_inconst.length());
 	}
 
-	TEST(compare, equal)
+	TEST(osv, equal)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -53,19 +54,24 @@ namespace osv {
 		EXPECT_TRUE(sv_ansi_aa < sv_an_1);
 	}
 
-	TEST(compare, compare)
+	TEST(osv, compare)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
 
 		string_view sv_an_1 = u"an"_o;
+		string_view sv_an_2 = u"an"_o;
 
 		string_view sv_ansi_aa = u"aa"_o;
 
+		EXPECT_EQ(0, sv_an_1.compare(sv_an_1));
+		EXPECT_EQ(0, sv_an_1.compare(sv_an_2));
+
 		EXPECT_EQ(-1, sv_ansi_aa.compare(sv_an_1));
+		EXPECT_EQ(1, sv_an_1.compare(sv_ansi_aa));
 	}
 
-	TEST(search, index_of)
+	TEST(osv, index_of)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -102,7 +108,7 @@ namespace osv {
 		}
 	}
 
-	TEST(search, last_index_of)
+	TEST(osv, last_index_of)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -139,7 +145,7 @@ namespace osv {
 		}
 	}
 
-	TEST(search, search)
+	TEST(osv, search)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -156,7 +162,7 @@ namespace osv {
 		}
 	}
 
-	TEST(oper, split)
+	TEST(osv, split)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -201,7 +207,7 @@ namespace osv {
 		}
 	}
 
-	TEST(search, start_with)
+	TEST(osv, start_with)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -218,7 +224,7 @@ namespace osv {
 		}
 	}
 
-	TEST(search, end_with)
+	TEST(osv, end_with)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -234,7 +240,7 @@ namespace osv {
 		}
 	}
 
-	TEST(oper, remove_xfix)
+	TEST(osv, remove_xfix)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -251,7 +257,7 @@ namespace osv {
 		}
 	}
 
-	TEST(oper, substring)
+	TEST(osv, substring)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -270,7 +276,7 @@ namespace osv {
 		}
 	}
 
-	TEST(oper, left_right)
+	TEST(osv, left_right)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -287,7 +293,7 @@ namespace osv {
 		}
 	}
 
-	TEST(oper, trim)
+	TEST(osv, trim)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;
@@ -328,7 +334,7 @@ namespace osv {
 		}
 	}
 
-	TEST(oper, to_string)
+	TEST(osv, to_string)
 	{
 		using namespace ostr;
 		using namespace ostr::literal;

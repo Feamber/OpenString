@@ -143,7 +143,7 @@ public:
 
 	[[nodiscard]] size_t length() const noexcept;
 
-	[[nodiscard]] inline constexpr bool empty() const noexcept
+	[[nodiscard]] inline constexpr bool is_empty() const noexcept
 	{
 		return origin_length() == 0;
 	}
@@ -210,7 +210,7 @@ public:
 		return _str;
 	}
 
-	[[nodiscard]] bool to_utf8(std::string& u8) const noexcept
+	[[nodiscard]] bool encode_to_utf8(std::string& u8) const noexcept
 	{
 		return coder::convert_append(_str, u8);
 	}

@@ -12,6 +12,7 @@ namespace helper
 {
 	namespace codepoint
 	{
+
 		constexpr char8_t HIGHEST_MASK = 0b10000000;
 
 		// Unicode constants
@@ -60,10 +61,10 @@ namespace helper
 		}
 
         // size of a code point in utf-8
-        inline size_t utf8_sequence_length(char8_t c, char8_t& out_mask)
+        inline small_size_t utf8_sequence_length(char8_t c, char8_t& out_mask)
         {
 			out_mask = 0;
-			size_t size = 0;
+			small_size_t size = 0;
 			while (c & HIGHEST_MASK)
 			{
 				++size;

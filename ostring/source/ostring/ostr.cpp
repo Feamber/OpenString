@@ -4,16 +4,6 @@
 
 _NS_OSTR_BEGIN
 
-string::string(const char* src, size_t length)
-	:_surrogate_pair_count(0)
-{
-	std::string_view sv(src, length);
-
-	// ansi is a subset of the first plane
-	//_str.insert(_str.cbegin(), src, src + len);
-	_str = std::u16string(sv.cbegin(), sv.cend());
-}
-
 size_t string::length() const
 {
 	return _str.size() - _surrogate_pair_count;
@@ -38,8 +28,6 @@ string string::substring(size_t from, size_t size) const
 	const size_t uint16_size = std::min(size, length() - from);
 	if (_surrogate_pair_count == 0)
 	{
-		/*ret._str.reserve(uint16_size + 1);
-		ret._str.insert(ret._str.cbegin(), _str.cbegin() + from, _str.cbegin() + (from + uint16_size));*/
 		return _str.substr(from, size);
 	}
 	else
@@ -57,7 +45,9 @@ string string::substring(size_t from, size_t size) const
 
 size_t string::index_of(const string& substr, size_t from, size_t length, case_sensitivity cs) const
 {
-	return static_cast<string_view>(*this).substring(from, length).index_of(substr, cs) + from;
+	size_t ind = static_cast<string_view>(*this).substring(from, length).index_of(substr, cs);
+	if (ind == SIZE_MAX) return SIZE_MAX;
+	return ind + from;
 }
 
 bool string::split(const string_view& splitter, string_view* lhs, string_view* rhs) const
@@ -72,10 +62,8 @@ size_t string::split(const string_view& splitter, std::vector<string_view>& str)
 	return sv.split(splitter, str);
 }
 
-string& string::replace(size_t from, size_t count, const string& dest, case_sensitivity cs)
+string& string::replace_origin(size_t from, size_t count, const string& dest, case_sensitivity cs)
 {
-	size_t len = _str.size();
-
 	count = position_codepoint_to_index(from + count);
 	from = position_codepoint_to_index(from);
 	count -= from;
@@ -86,7 +74,7 @@ string& string::replace(size_t from, size_t count, const string& dest, case_sens
 	return *this;
 }
 
-string& string::replace(const string& src, const string& dest, case_sensitivity cs)
+string& string::replace_origin(const string_view& src, const string_view& dest, case_sensitivity cs)
 {
 	// src should NOT be empty!
 	if (src.is_empty()) return *this; // ASSERT!
@@ -97,35 +85,41 @@ string& string::replace(const string& src, const string& dest, case_sensitivity 
 
 	while (index < len)
 	{
-		_str.replace(_str.cbegin() + index, _str.cbegin() + index + src._str.size(), dest._str.c_str());
-		// split into two steps beware of negative number when use type size_t
-		_surrogate_pair_count += dest._surrogate_pair_count;
-		_surrogate_pair_count -= src._surrogate_pair_count;
-		index += dest._str.size();
+		_str.replace(_str.cbegin() + index, _str.cbegin() + index + src.raw().size(), dest.raw());
+		index += dest.origin_length();
 		index = index_of(src, index, SIZE_MAX, cs);
 	}
+	calculate_surrogate();
 	return *this;
 }
 
-string string::replace_copy(const string& src, const string& dest, case_sensitivity cs) const
+string string::replace_copy(const string_view& src, const string_view& dest, case_sensitivity cs) const
 {
 	string new_inst(*this);
-	new_inst.replace(src, dest, cs);
+	new_inst.replace_origin(src, dest, cs);
 	return new_inst;
 }
 
-void string::trim_start()
+string& string::trim_start()
 {
-	_str.erase(_str.begin(), std::find_if(_str.begin(), _str.end(), [](auto ch) {
-		return !std::isspace(ch);
-	}));
+	auto begin = _str.cbegin();
+
+	while (begin != _str.cend() && *begin == ' ') 
+		++begin;
+
+	_str.erase(_str.cbegin(), begin);
+	return *this;
 }
 
-void string::trim_end()
+string& string::trim_end() 
 {
-	_str.erase(std::find_if(_str.rbegin(), _str.rend(), [](auto ch) {
-		return !std::isspace(ch);
-	}).base(), _str.end());
+	auto rbegin = _str.crbegin();
+
+	while (rbegin != _str.crend() && *rbegin == ' ') 
+		++rbegin;
+
+	_str.erase(rbegin.base(), _str.cend());
+	return *this;
 }
 
 string string::trim_start_copy()

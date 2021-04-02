@@ -12,8 +12,6 @@ _NS_OSTR_BEGIN
 
 class OPEN_STRING_EXPORT string
 {
-	friend class string_view;
-	friend struct fmt::formatter<ostr::string, wchar_t>;
 public:
 
 	string() = default;
@@ -22,20 +20,54 @@ public:
 	string& operator=(string&&) = default;
 	string& operator=(const string&) = default;
 
-	// Initializes a new instance of the string class to the value 
-	// indicated by a specified pointer to an array of characters,
-	// and how it's encoded.
-	// @param src: the c-style char.
-	// @param ec: how it's encoded.
-	string(const char* src, size_t length = SIZE_MAX);
+	template<typename T, size_t N>
+	string(const T arr[N])
+	{
+		using ut = std::make_unsigned_t< T >;
+		using up = std::add_pointer_t< std::add_const_t< ut > >;
+		std::basic_string_view<ut> sv(reinterpret_cast< up >(arr), N);
+		_str = std::u16string(sv.cbegin(), sv.cend());
+		calculate_surrogate();
+	}
+
+	template<typename T>
+	string(const T* src)
+	{
+		using ut = std::make_unsigned_t< T >;
+		using up = std::add_pointer_t< std::add_const_t< ut > >;
+		std::basic_string_view<ut> sv(reinterpret_cast<up>(src));
+		_str = std::u16string(sv.cbegin(), sv.cend());
+		calculate_surrogate();
+	}
+
+	template<typename T>
+	string(const T* src, size_t len)
+	{
+		using ut = std::make_unsigned_t< T >;
+		using up = std::add_pointer_t< std::add_const_t< ut > >;
+		std::basic_string_view<ut> sv(reinterpret_cast<up>(src), len);
+		_str = std::u16string(sv.cbegin(), sv.cend());
+		calculate_surrogate();
+	}
 
 	// Initializes a new instance of the string class to the value 
 	// indicated by a specified pointer to an array of wide characters,
 	// and the endian it is.
 	// @param src: the c-style wide char.
 	// @param ec: what's the endian it is.
-	string(const char16_t* src, size_t length = SIZE_MAX)
-		: _str(src, 0, length)
+	string(const char16_t* src)
+		: _str(src)
+	{
+		calculate_surrogate();
+	}
+
+	// Initializes a new instance of the string class to the value 
+	// indicated by a specified pointer to an array of wide characters,
+	// and the endian it is.
+	// @param src: the c-style wide char.
+	// @param ec: what's the endian it is.
+	string(const char16_t* src, size_t length)
+		: _str(src, length)
 	{
 		calculate_surrogate();
 	}
@@ -51,6 +83,28 @@ public:
 		_str.resize(count, c);
 	}
 
+	// @param str: the string used to init.
+	// @param count: how may c.
+	template<typename T>
+	string(const std::basic_string<T>& str)
+	{
+		using ut = std::make_unsigned_t< T >;
+		std::basic_string_view<ut> sv(str);
+		_str = std::u16string(sv.cbegin(), sv.cend());
+		calculate_surrogate();
+	}
+
+	// @param str: the string used to init.
+	// @param count: how may c.
+	template<typename T>
+	string(std::basic_string_view<T> str)
+	{
+		using ut = std::make_unsigned_t< T >;
+		std::basic_string_view<ut> sv(str);
+		_str = std::u16string(sv.cbegin(), sv.cend());
+		calculate_surrogate();
+	}
+
 	// Initializes a new instance of the string class with std::wstring.
 	// @param str: the wstring used to init.
 	// @param count: how may c.
@@ -60,29 +114,16 @@ public:
 		calculate_surrogate();
 	}
 
-	string(const std::u16string_view& sv)
+	string(std::u16string_view sv)
 		: _str(sv)
 	{
 		calculate_surrogate();
 	}
 
-	// Initializes a new instance of the string class with std::string.
-	// @param str: the string used to init.
-	// @param count: how may c.
-	string(const std::string& str)
-		: string(str.c_str())
-	{}
-
-	string(const string_view& sv)
+	string(string_view sv)
 		: _str(sv.raw())
 	{
 		calculate_surrogate();
-	}
-
-	string& operator=(const string_view& sv)
-	{
-		*this = string(sv);
-		return *this;
 	}
 
 	inline operator const string_view() const
@@ -96,7 +137,7 @@ public:
 	}
 
 	// @return: the length of string.
-	size_t length() const;
+	[[nodiscard]] size_t length() const;
 
 	// @return: whether this string is empty.
 	[[nodiscard]] inline bool is_empty() const
@@ -167,14 +208,14 @@ public:
 	// string("this") + "rhs" == string("thisrhs")
 	// @param rhs: append rhs back this string.
 	// @return: a new result string instance.
-	string operator+(const string& rhs);
+	[[nodiscard]] string operator+(const string& rhs);
 
 	// Get a new substring from specific position with specific size
 	// string("abcdefg").substring(2, 3) == string("cde");
 	// @param from: from where to start, 0 if from begin.
 	// @param size: how many chars you want.
 	// @return: the new substring instance
-	string substring(size_t from, size_t size = SIZE_MAX) const;
+	[[nodiscard]] string substring(size_t from, size_t size = SIZE_MAX) const;
 
 	// Get the index of specific string
 	// string("abcdefg").index_of("cde") == 2;
@@ -183,7 +224,7 @@ public:
 	// @param length: how many length in this string to search, that means, searching from "from" to "from + length".
 	// @return: the new substring instance
 
-	size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const;
+	[[nodiscard]] size_t index_of(const string& substr, size_t from = 0, size_t length = SIZE_MAX, case_sensitivity cs = case_sensitivity::sensitive) const;
 
 	// Get the last index of specific string
 	// string("123321123").last_index_of("123") == 6;
@@ -222,32 +263,31 @@ public:
 	template<typename F>
 	[[nodiscard]] size_t search(F&& predicate) const
 	{
-		return std::find_if(_str.cbegin(), _str.cend(), std::forward<F>(predicate)) - _str.cbegin();
+		return string_view(*this).search(predicate);
 	}
 
-	[[nodiscard]] string& replace(size_t from, size_t count, const string& dest, case_sensitivity cs = case_sensitivity::sensitive);
+	string& replace_origin(size_t from, size_t count, const string& dest, case_sensitivity cs = case_sensitivity::sensitive);
 
-	[[nodiscard]] string& replace(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive);
+	string& replace_origin(const string_view& src, const string_view& dest, case_sensitivity cs = case_sensitivity::sensitive);
 
 	// Returns a new string in which all occurrences of a specified string in the current instance
 	// are replaced with another specified string.
 	// @return: how many substrings have been replaced
-	[[nodiscard]] string replace_copy(const string& src, const string& dest, case_sensitivity cs = case_sensitivity::sensitive) const;
+	[[nodiscard]] string replace_copy(const string_view& src, const string_view& dest, case_sensitivity cs = case_sensitivity::sensitive) const;
 
 	template<typename...Args>
-	string format(Args&&...args) const
+	[[nodiscard]] string format(Args&&...args) const
 	{
 		return fmt::format(_str.c_str(), go_str(std::forward<Args>(args))...);
 	}
 
-	void trim_start();
+	string& trim_start();
 
-	void trim_end();
+	string& trim_end();
 
-	inline void trim()
+	inline string& trim()
 	{
-		trim_start();
-		trim_end();
+		return trim_start().trim_end();
 	}
 
 	[[nodiscard]] string trim_start_copy();
@@ -258,7 +298,12 @@ public:
 
 	[[nodiscard]] inline std::u16string_view raw() const
 	{
-		return _str;
+		return std::u16string_view( _str );
+	}
+
+	bool decode_from_utf8(std::string_view u8) noexcept
+	{
+		return coder::convert_append(u8, _str);
 	}
 
 private:

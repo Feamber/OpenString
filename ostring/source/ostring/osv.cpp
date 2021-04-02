@@ -102,11 +102,11 @@ size_t string_view::split(const string_view& splitter, std::vector<string_view>&
 	size_t split_times = 0;
 	while (rhs.split(splitter, &lhs, &rhs))
 	{
-		if (!cull_empty || !lhs.empty())
+		if (!cull_empty || !lhs.is_empty())
 			str.push_back(std::move(lhs));
 		++split_times;
 	}
-	if (!cull_empty || !rhs.empty())
+	if (!cull_empty || !rhs.is_empty())
 		str.push_back(rhs);
 	return split_times;
 }

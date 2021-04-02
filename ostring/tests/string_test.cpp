@@ -3,308 +3,334 @@
 
 #include "ostring/ostr.h"
 
-namespace ostr {
-	TEST(construct, literal) {
-		using namespace ostr;
-		using namespace ostr::literal;
+TEST(ostr, literal)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
 
-		string str_inconst = u"a"_o;
-		EXPECT_EQ(1, str_inconst.length());
+	string str_default_ctor;
+	string str_empty_ansi("");
+	string str_empty_wide(u""_o);
+	string str_ctor_ansi("123321");
+	string str_assign = "123321";
+	string str_ctor_wide(u"123321"_o);
+	string str_ctor_ansi_another("abccd");
+	string str_ctor_hans(u"我"_o);
+	string str_ctor_hans_another(u"我他"_o);
+	string str_ctor_supplement(u"𪚥😁"_o);
+	string str_ctor_supplement_2(u"𪚥😁"_o);
+	string str_ctor_supplement_3(u"𪚥"_o);
+	string str_ctor_6c_ansi('c', 6);
+	string str_ctor_6c_wide(L'c', 6);
+	string str_ctor_6c_string("cccccc");
+	string str_ctor_substring1(u"123321", 3);
+	string str_ctor_substring2(u"123"_o);
 
-		string sv_constexpr = u"bb"_o;
-		EXPECT_EQ(2, sv_constexpr.length());
+	EXPECT_TRUE(str_default_ctor == str_default_ctor);
+	EXPECT_TRUE(str_default_ctor == str_empty_ansi);
+	EXPECT_TRUE(str_empty_ansi == str_empty_wide);
+	EXPECT_TRUE(str_default_ctor == str_empty_wide);
+	EXPECT_TRUE(str_ctor_ansi == str_ctor_ansi);
+	EXPECT_TRUE(str_ctor_ansi == str_assign);
+	EXPECT_TRUE(str_assign == str_ctor_wide);
+	EXPECT_TRUE(str_ctor_ansi == str_ctor_wide);
+	EXPECT_TRUE(str_ctor_wide == str_ctor_wide);
+	EXPECT_FALSE(str_ctor_ansi == str_ctor_ansi_another);
+	EXPECT_FALSE(str_ctor_hans == str_ctor_hans_another);
+	EXPECT_TRUE(str_ctor_supplement == str_ctor_supplement_2);
+	EXPECT_FALSE(str_ctor_supplement == str_ctor_supplement_3);
+	EXPECT_TRUE(str_ctor_6c_ansi == str_ctor_6c_string);
+	EXPECT_TRUE(str_ctor_6c_wide == str_ctor_6c_string);
+	EXPECT_TRUE(str_ctor_substring1 == str_ctor_substring2);
+}
 
-		str_inconst = u"你😀"_o;
-		EXPECT_EQ(2, str_inconst.length());
+TEST(ostr, compare)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
 
-		str_inconst = sv_constexpr;
-		EXPECT_EQ(2, str_inconst.length());
+	string str_default_ctor;
+	string str_empty_ansi("");
+	string str_empty_wide(u""_o);
+	string str_ctor_ansi("123321");
+	string str_assign = "123321";
+	string str_ctor_wide(u"123321"_o);
+	string str_ctor_ansi_another("abccd");
+	string str_ctor_hans(u"我"_o);
+	string str_ctor_hans_another(u"我他"_o);
+	string str_ctor_supplement(u"𪚥😁"_o);
+	string str_ctor_supplement_2(u"𪚥😁"_o);
+	string str_ctor_supplement_3(u"𪚥"_o);
+
+	EXPECT_EQ(0, str_default_ctor.compare(str_empty_ansi));
+	EXPECT_EQ(-1, str_empty_wide.compare(str_assign));
+	EXPECT_EQ(0, str_assign.compare(str_ctor_wide));
+	EXPECT_EQ(0, str_ctor_wide.compare(str_assign));
+	EXPECT_EQ(-1, str_ctor_wide.compare(str_ctor_ansi_another));
+	EXPECT_EQ(-1, str_ctor_hans.compare(str_ctor_hans_another));
+	EXPECT_EQ(0, str_ctor_supplement.compare(str_ctor_supplement_2));
+	EXPECT_EQ(1, str_ctor_supplement.compare(str_ctor_supplement_3));
+}
+TEST(ostr, length)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
+
+	string str_default_ctor;
+	string str_empty_ansi("");
+	string str_empty_wide(u""_o);
+	string str_ctor_ansi("123321");
+	string str_assign = "123321";
+	string str_ctor_wide(u"123321"_o);
+	string str_ctor_ansi_another("abccd");
+	string str_ctor_hans(u"我"_o);
+	string str_ctor_hans_another(u"我他"_o);
+	string str_ctor_supplement(u"𪚥😁"_o);
+	string str_ctor_supplement_2(u"𪚥"_o);
+
+	EXPECT_EQ(0, str_default_ctor.length());
+	EXPECT_TRUE(str_default_ctor.is_empty());
+	EXPECT_EQ(0, str_empty_ansi.length());
+	EXPECT_EQ(0, str_empty_wide.length());
+	EXPECT_EQ(6, str_ctor_ansi.length());
+	EXPECT_FALSE(str_ctor_ansi.is_empty());
+	EXPECT_EQ(6, str_assign.length());
+	EXPECT_EQ(6, str_ctor_wide.length());
+	EXPECT_EQ(5, str_ctor_ansi_another.length());
+	EXPECT_EQ(1, str_ctor_hans.length());
+	EXPECT_EQ(2, str_ctor_hans_another.length());
+	EXPECT_EQ(2, str_ctor_supplement.length());
+	EXPECT_EQ(1, str_ctor_supplement_2.length());
+}
+
+TEST(ostr, combination)
+{
+	using namespace ostr;
+
+	{
+		const char char_wo[] = { 0xe6i8, 0x88i8, 0x91i8, 0x00i8 };
+		string str_wo_utf8;
+		str_wo_utf8.decode_from_utf8(char_wo);
+		string str_ai(u"😘");
+		string str_ni(u"ni");
+
+		string combine = str_wo_utf8 + str_ai + str_ai + str_ni;
+		string correct = u"我😘😘ni";
+
+		EXPECT_TRUE(combine == correct);
 	}
 }
 
-
-/*using namespace Microsoft::VisualStudio::CppUnitTestFramework;
-
-namespace test_string
+TEST(ostr, substring)
 {
-	TEST_CLASS(test_string_base)
+	using namespace ostr;
+	using namespace ostr::literal;
+
 	{
-	public:
+		string str_src1("123321");
 
-		TEST_METHOD(string_construct)
-		{
-			using namespace ostr;
+		EXPECT_TRUE(str_src1.substring(3) == string("321"));
+		EXPECT_TRUE(str_src1.substring(0, 4) == string("1233"));
+		EXPECT_TRUE(str_src1.substring(1, 4) == string("2332"));
 
-			string str_default_ctor;
-			string str_empty_ansi			("");
-			string str_empty_wide			(OSTR(""));
-			string str_ctor_ansi			("123321");
-			string str_assign				= "123321";
-			string str_ctor_wide			(OSTR("123321"));
-			string str_ctor_ansi_another	("abccd");
-			string str_ctor_hans			(OSTR("我"));
-			string str_ctor_hans_another	(OSTR("我他"));
-			string str_ctor_supplement		(OSTR("𪚥😁"));
-			string str_ctor_supplement_2	(OSTR("𪚥😁"));
-			string str_ctor_supplement_3	(OSTR("𪚥"));
-			string str_ctor_6c_ansi			('c', 6);
-			string str_ctor_6c_wide			(L'c', 6);
-			string str_ctor_6c_string		("cccccc");
-			string str_ctor_substring1		("123321", 3);
-			string str_ctor_substring2		(OSTR("123"));
+	}
 
-			Assert::IsTrue	(str_default_ctor		== str_default_ctor);
-			Assert::IsTrue	(str_default_ctor		== str_empty_ansi);
-			Assert::IsTrue	(str_empty_ansi			== str_empty_wide);
-			Assert::IsTrue	(str_default_ctor		== str_empty_wide);
-			Assert::IsTrue	(str_ctor_ansi			== str_ctor_ansi);
-			Assert::IsTrue	(str_ctor_ansi			== str_assign);
-			Assert::IsTrue	(str_assign				== str_ctor_wide);
-			Assert::IsTrue	(str_ctor_ansi			== str_ctor_wide);
-			Assert::IsTrue	(str_ctor_wide			== str_ctor_wide);
-			Assert::IsFalse	(str_ctor_ansi			== str_ctor_ansi_another);
-			Assert::IsFalse	(str_ctor_hans			== str_ctor_hans_another);
-			Assert::IsTrue	(str_ctor_supplement	== str_ctor_supplement_2);
-			Assert::IsFalse	(str_ctor_supplement	== str_ctor_supplement_3);
-			Assert::IsTrue	(str_ctor_6c_ansi		== str_ctor_6c_string);
-			Assert::IsTrue	(str_ctor_6c_wide		== str_ctor_6c_string);
-			Assert::IsTrue	(str_ctor_substring1	== str_ctor_substring2);
-		}
-
-		TEST_METHOD(string_compare)
-		{
-			using namespace ostr;
-
-			string str_default_ctor;
-			string str_empty_ansi("");
-			string str_empty_wide(OSTR(""));
-			string str_ctor_ansi("123321");
-			string str_assign = "123321";
-			string str_ctor_wide(OSTR("123321"));
-			string str_ctor_ansi_another("abccd");
-			string str_ctor_hans(OSTR("我"));
-			string str_ctor_hans_another(OSTR("我他"));
-			string str_ctor_supplement(OSTR("𪚥😁"));
-			string str_ctor_supplement_2(OSTR("𪚥😁"));
-			string str_ctor_supplement_3(OSTR("𪚥"));
-
-			Assert::AreEqual(0, str_default_ctor.compare(str_empty_ansi));
-			Assert::AreEqual(-1, str_empty_wide.compare(str_assign));
-			Assert::AreEqual(0, str_assign.compare(str_ctor_wide));
-			Assert::AreEqual(0, str_ctor_wide.compare(str_assign));
-			Assert::AreEqual(-1, str_ctor_wide.compare(str_ctor_ansi_another));
-			Assert::AreEqual(-1, str_ctor_hans.compare(str_ctor_hans_another));
-			Assert::AreEqual(0, str_ctor_supplement.compare(str_ctor_supplement_2));
-			Assert::AreEqual(1, str_ctor_supplement.compare(str_ctor_supplement_3));
-		}
-	};
-
-	TEST_CLASS(test_string_state)
 	{
-	public:
+		string str_src2(u"233你abc"_o);
 
-		TEST_METHOD(string_length)
-		{
-			using namespace ostr;
+		EXPECT_TRUE(str_src2.substring(3) == string(u"你abc"));
+		EXPECT_TRUE(str_src2.substring(0, 4) == string(u"233你"));
+		EXPECT_TRUE(str_src2.substring(1, 4) == string(u"33你a"_o));
+	}
 
-			string str_default_ctor;
-			string str_empty_ansi("");
-			string str_empty_wide(OSTR(""));
-			string str_ctor_ansi("123321");
-			string str_assign = "123321";
-			string str_ctor_wide(OSTR("123321"));
-			string str_ctor_ansi_another("abccd");
-			string str_ctor_hans(OSTR("我"));
-			string str_ctor_hans_another(OSTR("我他"));
-			string str_ctor_supplement(OSTR("𪚥😁"));
-			string str_ctor_supplement_2(OSTR("𪚥"));
-
-			Assert::AreEqual<size_t>	(str_default_ctor.length(),			0);
-			Assert::IsTrue				(str_default_ctor.is_empty());
-			Assert::AreEqual<size_t>	(str_empty_ansi.length(),			0);
-			Assert::AreEqual<size_t>	(str_empty_wide.length(),			0);
-			Assert::AreEqual<size_t>	(str_ctor_ansi.length(),			6);
-			Assert::IsFalse				(str_ctor_ansi.is_empty());
-			Assert::AreEqual<size_t>	(str_assign.length(),				6);
-			Assert::AreEqual<size_t>	(str_ctor_wide.length(),			6);
-			Assert::AreEqual<size_t>	(str_ctor_ansi_another.length(),	5);
-			Assert::AreEqual<size_t>	(str_ctor_hans.length(),			1);
-			Assert::AreEqual<size_t>	(str_ctor_hans_another.length(),	2);
-			Assert::AreEqual<size_t>	(str_ctor_supplement.length(),		2);
-			Assert::AreEqual<size_t>	(str_ctor_supplement_2.length(),	1);
-		}
-	};
-
-	TEST_CLASS(test_string_operator)
 	{
-	public:
+		string str_src3(u"我😘😘ni");
 
-		TEST_METHOD(string_combination)
-		{
-			using namespace ostr;
-
-			{
-				const char char_wo[] = { 0xe6i8, 0x88i8, 0x91i8, 0x00i8 };
-				string str_wo(char_wo, SIZE_MAX, encoding::utf8);
-				string str_ai(OSTR("😘"));
-				string str_ni(OSTR("ni"));
-
-				string combine = str_wo + str_ai + str_ai + str_ni;
-				string correct = OSTR("我😘😘ni");
-
-				Assert::IsTrue(combine == correct); 
-			}
-		}
-	};
-
-	TEST_CLASS(test_string_find)
-	{
-	public:
-
-		TEST_METHOD(string_substring)
-		{
-			using namespace ostr;
-
-			{
-				string str_src1("123321");
-
-				Assert::IsTrue(str_src1.substring(3) == string("321"));
-				Assert::IsTrue(str_src1.substring(0, 4) == string("1233"));
-				Assert::IsTrue(str_src1.substring(1, 4) == string("2332"));
-
-			}
-
-			{
-				string str_src2(OSTR("233你abc"));
-
-				Assert::IsTrue(str_src2.substring(3) == string(OSTR("你abc")));
-				Assert::IsTrue(str_src2.substring(0, 4) == string(OSTR("233你")));
-				Assert::IsTrue(str_src2.substring(1, 4) == string(OSTR("33你a")));
-			}
-
-			{
-				string str_src3(OSTR("我😘😘ni"));
-
-				Assert::IsTrue(str_src3.substring(2) == string(OSTR("😘ni")));
-				Assert::IsTrue(str_src3.substring(0, 4) == string(OSTR("我😘😘n")));
-				Assert::IsTrue(str_src3.substring(1, 3) == string(OSTR("😘😘n")));
-			}
-		}
-
-		TEST_METHOD(string_lowercase)
-		{
-			using namespace ostr;
-
-			Assert::IsTrue(ostr::helper::character::char_lowercase('A') == 'a');
-			Assert::IsTrue(ostr::helper::character::char_lowercase('a') == 'a');
-			Assert::IsTrue(ostr::helper::character::char_lowercase('1') == '1');
-			Assert::IsTrue(ostr::helper::character::char_lowercase(L'A') == L'a');
-			Assert::IsTrue(ostr::helper::character::char_lowercase(L'a') == L'a');
-			Assert::IsTrue(ostr::helper::character::char_lowercase(L'1') == L'1');
-			Assert::IsTrue(ostr::helper::character::char_lowercase(L'我') == L'我');
-
-		}
-		TEST_METHOD(string_index_of)
-		{
-			using namespace ostr;
-
-			{
-				string str_src1("1231234");
-				string str_to_find1("123");
-				string str_to_find2("1234");
-
-				Assert::AreEqual<size_t>(0, str_src1.index_of(str_to_find1));
-				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find2));
-				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find1, 2));
-				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find1, 2, 5)); 
-			}
-
-			{
-				string str_src1(OSTR("我😘😘ni"));
-				string str_to_find1(OSTR("😘"));
-				string str_to_find2(OSTR("😘n"));
-				string str_to_find3("n");
-
-				Assert::AreEqual<size_t>(1, str_src1.index_of(str_to_find1));
-				Assert::AreEqual<size_t>(3, str_src1.index_of(str_to_find3));
-				Assert::AreEqual<size_t>(2, str_src1.index_of(str_to_find1, 2));
-				Assert::AreEqual<size_t>(2, str_src1.index_of(str_to_find2, 2, 2));
-			}
-		}
-		TEST_METHOD(string_search)
-		{
-			using namespace ostr;
-
-			{
-				string str("123456789");
-
-				Assert::AreEqual<size_t>(str.search([](wchar_t c) {return c > L'4'; }), 4);
-			}
-		}
-		TEST_METHOD(string_replace)
-		{
-			using namespace ostr;
-
-			{
-				string str_src1("1231234");
-
-				str_src1.replace(3, 2, "");
-				Assert::IsTrue(str_src1 == "12334");
-			}
-			{
-				string str_src1("1231234");
-
-				Assert::IsTrue(str_src1.replace_copy("123", OSTR("1234")) == "123412344");
-			}
-		}
-		TEST_METHOD(string_format)
-		{
-			using namespace ostr;
-
-			{
-				string str_src1("123{}1234");
-
-				string str = str_src1.format(OSTR("a"));
-				Assert::IsTrue(str == "123a1234");
-			}
-			{
-				string str_src1("123{1}12{0}34");
-
-				string str = str_src1.format(123, OSTR("a"));
-				Assert::IsTrue(str == "123a1212334");
-			}
-			{
-				string str_src1("123{2}12{1}34");
-
-				string str = str_src1.format(OSTR("a"), 123, OSTR("b"));
-				Assert::IsTrue(str == "123b1212334");
-			}
-		}
-		TEST_METHOD(string_trim)
-		{
-			using namespace ostr;
-
-			{
-				string str_src1("   1231234");
-
-				str_src1.trim_start();
-				Assert::IsTrue(str_src1 == "1231234");
-			}
-			{
-				string str_src1("   1231234   ");
-
-				str_src1.trim_end();
-				Assert::IsTrue(str_src1 == "   1231234");
-			}
-			{
-				string str_src1("   1231234   ");
-
-				str_src1.trim();
-				Assert::IsTrue(str_src1 == "1231234");
-			}
-		}
-	};
-
-
+		EXPECT_TRUE(str_src3.substring(2) == string(u"😘ni"));
+		EXPECT_TRUE(str_src3.substring(0, 4) == string(u"我😘😘n"_o));
+		EXPECT_TRUE(str_src3.substring(1, 3) == string(u"😘😘n"));
+	}
 }
-*/
+
+TEST(ostr, index_of)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
+
+	{
+		string str_src1("1231234");
+		string str_to_find1("123");
+		string str_to_find2(u"1234"_o);
+
+		EXPECT_EQ(0, str_src1.index_of(str_to_find1));
+		EXPECT_EQ(3, str_src1.index_of(str_to_find2));
+		EXPECT_EQ(3, str_src1.index_of(str_to_find1, 2));
+		EXPECT_EQ(3, str_src1.index_of(str_to_find1, 2, 5));
+	}
+
+	{
+		string str_src1(u"我😘😘ni");
+		string str_to_find1(u"😘"_o);
+		string str_to_find2(u"😘n");
+		string str_to_find3("n");
+
+		EXPECT_EQ(1, str_src1.index_of(str_to_find1));
+		EXPECT_EQ(3, str_src1.index_of(str_to_find3));
+		EXPECT_EQ(2, str_src1.index_of(str_to_find1, 2));
+		EXPECT_EQ(2, str_src1.index_of(str_to_find2, 2, 2));
+	}
+}
+
+TEST(ostr, search)
+{
+	using namespace ostr;
+
+	{
+		string str("123456789");
+
+		EXPECT_EQ(4, str.search([](char c) {return c > '4'; }));
+		EXPECT_EQ(2, str.search([](wchar_t c) {return c > L'2'; }));
+		EXPECT_EQ(8, str.search([](char16_t c) {return c > u'8'; }));
+		EXPECT_EQ(4, str.search([](char32_t c) {return c == U'5'; }));
+	}
+	{
+		string str(u"我😘れC♂");
+
+		EXPECT_EQ(3, str.search([](char c) {return c == 'C'; }));
+		EXPECT_EQ(4, str.search([](wchar_t c) {return c == L'♂'; }));
+		EXPECT_EQ(2, str.search([](char16_t c) {return c == u'れ'; }));
+		EXPECT_EQ(1, str.search([](char32_t c) {return c >= U'😘'; }));
+	}
+}
+
+TEST(ostr, replace)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
+
+	{
+		string str("1231234");
+
+		str.replace_origin(3, 2, "");
+		EXPECT_TRUE(str == "12334");
+	}
+	{
+		string str("1231234");
+
+		EXPECT_TRUE(str.replace_copy(u"123"_o, u"1234") == "123412344");
+	}
+	{
+		string str(u"我♂😘Cれ");
+		str.replace_origin(1, 2, u"™").replace_origin(2, 1, "3");
+
+		EXPECT_TRUE(str == u"我™3れ"_o);
+	}
+	{
+		string str(u"我😘れC♂");
+
+		EXPECT_TRUE(str.replace_copy(u"我😘"_o, u"♂♂♂♂♂") == u"♂♂♂♂♂れC♂");
+	}
+	{
+		string str(u"我😘れC♂");
+
+		EXPECT_TRUE(str.replace_copy(u"我れ"_o, u"33") == u"我😘れC♂");
+	}
+}
+
+TEST(ostr, format)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
+
+	{
+		string str_src1("123{}1234");
+
+		string str = str_src1.format(u"a");
+		EXPECT_TRUE(str == "123a1234");
+	}
+	{
+		string str_src1("123{1}12{0}34");
+
+		string str = str_src1.format(123, u"a");
+		EXPECT_TRUE(str == "123a1212334");
+	}
+	{
+		string str_src1("123{2}12{1}34");
+
+		string str = str_src1.format(u"a"_o, 123, u"b");
+		EXPECT_TRUE(str == "123b1212334");
+	}
+	{
+		string str_src1(u"我{3}😘{0}れC{2}♂");
+
+		string str = str_src1.format(u"a", u"o", u"™", u"™C𪚥");
+		EXPECT_TRUE(str == u"我™C𪚥😘aれC™♂");
+		EXPECT_EQ(10, str.length());
+	}
+}
+
+TEST(ostr, trim)
+{
+	using namespace ostr;
+	using namespace ostr::literal;
+
+	{ 
+		{
+			string str_src1("   123 1234    ");
+
+			str_src1.trim_start();
+			EXPECT_TRUE(str_src1 == "123 1234    ");
+		}
+		{
+			string str_src1("   123 1234   ");
+
+			str_src1.trim_end();
+			EXPECT_TRUE(str_src1 == "   123 1234");
+		}
+		{
+			string str_src1("   123 1234   ");
+
+			str_src1.trim();
+			EXPECT_TRUE(str_src1 == "123 1234");
+		}
+	}
+
+	{
+		{
+			string str = u"   你 好 😙    "_o;
+			EXPECT_TRUE(str.trim_start() == u"你 好 😙    "_o);
+		}
+		{
+			string str = u"   你 好 😙    "_o;
+			EXPECT_TRUE(str.trim_end() == u"   你 好 😙"_o);
+		}
+		{
+			string str = u"   你 好 😙    "_o;
+			EXPECT_TRUE(str.trim() == u"你 好 😙"_o);
+		}
+	}
+
+	{
+		string str = u"你 好 😙"_o;
+		EXPECT_TRUE(str.trim_start() == u"你 好 😙"_o);
+		EXPECT_TRUE(str.trim_end() == u"你 好 😙"_o);
+		EXPECT_TRUE(str.trim() == u"你 好 😙"_o);
+	}
+	{
+		{
+			string str = u"       "_o;
+			EXPECT_TRUE(str.trim_start() == u""_o);
+			EXPECT_TRUE(str.is_empty());
+		}
+		{
+			string str = u"       "_o;
+			EXPECT_TRUE(str.trim_end() == u""_o);
+			EXPECT_TRUE(str.is_empty());
+		}
+		{
+			string str = u"       "_o;
+			EXPECT_TRUE(str.trim() == u""_o);
+			EXPECT_TRUE(str.is_empty());
+		}
+	}
+}
