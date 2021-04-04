@@ -30,8 +30,9 @@ public:
 		using raw_const_it = std::u16string_view::const_iterator;
 
 		// Should pass param end because method refresh_cp only work for a valid iterator;
-		iterator(raw_it it, raw_const_it end)
+		iterator(raw_it it, raw_const_it begin, raw_const_it end)
 			: _it(it) 
+			, _begin(begin)
 			, _end(end)
 		{
 			refresh_cp();
@@ -57,6 +58,16 @@ public:
 			return tmp; 
 		}
 
+		size_t get_origin_index() const
+		{
+			return _it - _begin;
+		}
+
+		small_size_t get_origin_length() const
+		{
+			return _len;
+		}
+
 		bool operator== (const iterator& rhs) { return _it == rhs._it; }
 		bool operator!= (const iterator& rhs) { return _it != rhs._it; }
 		bool operator< (const iterator& rhs) { return _it < rhs._it; }
@@ -76,18 +87,20 @@ public:
 	private:
 
 		raw_it _it;
+		raw_const_it _begin;
 		raw_const_it _end;
 		codepoint _cp;
+		size_t _unicode_index;
 		small_size_t _len;
 
 	};
 
 	using const_iterator = iterator;
 
-	iterator begin() { return iterator(_str.begin(), _str.cend()); }
-	iterator end() { return iterator(_str.end(), _str.cend()); }
-	const_iterator cbegin() const { return iterator(_str.cbegin(), _str.cend()); }
-	const_iterator cend() const { return iterator(_str.cend(), _str.cend()); }
+	iterator begin() { return iterator(_str.begin(), _str.cbegin(), _str.cend()); }
+	iterator end() { return iterator(_str.end(), _str.cbegin(), _str.cend()); }
+	const_iterator cbegin() const { return iterator(_str.cbegin(), _str.cbegin(), _str.cend()); }
+	const_iterator cend() const { return iterator(_str.cend(), _str.cbegin(), _str.cend()); }
 	const_iterator begin() const { return cbegin(); }
 	const_iterator end() const { return cend(); }
 

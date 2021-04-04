@@ -351,4 +351,49 @@ namespace osv {
 		}
 	}
 
+	TEST(osv, iterator)
+	{
+		using namespace ostr;
+		using namespace ostr::literal;
+
+		{
+			string_view sv = u"123456"_o;
+			char32_t ec = u'1';
+			for (auto c : sv)
+			{
+				EXPECT_TRUE(c == ec);
+				++ec;
+			}
+		}
+		{
+			string_view sv = u"你好我是中文"_o;
+			size_t ind = 0;
+			for (auto c : sv)
+			{
+				EXPECT_TRUE(c == u"你好我是中文"[ind]);
+				++ind;
+			}
+		}
+		{
+			string_view sv = u"😘好 ™𪚥😁"_o;
+			size_t ind = 0;
+			for (auto c : sv)
+			{
+				EXPECT_TRUE(c == U"😘好 ™𪚥😁"[ind]);
+				++ind;
+			}
+		}
+		{
+			string_view sv = u"😘𪚥😁"_o;
+			size_t ind = 0;
+			for (auto it = sv.cbegin(); it != sv.cend(); ++it)
+			{
+				EXPECT_TRUE(*it == U"😘𪚥😁"[ind]);
+				EXPECT_TRUE(it.get_origin_index() == ind * 2);
+				EXPECT_TRUE(it.get_origin_length() == 2);
+				++ind;
+			}
+		}
+	}
+
 }
