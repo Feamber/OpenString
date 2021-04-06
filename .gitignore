@@ -355,3 +355,4 @@ ostring/out/
 ostring/sample/out/
 ostring/build/
 ostring/extern/out/
+ostring/CMakeSettings.json

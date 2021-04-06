@@ -19,8 +19,8 @@ add_executable(open_string_tests
 	"helper_test.cpp"
 	"string_test.cpp"
 	"string_view_test.cpp"
-	
-)
+	"format_test.cpp"
+	)
 target_link_libraries(open_string_tests
 	gtest_main
 	open_string
