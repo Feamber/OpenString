@@ -209,6 +209,8 @@ public:
 
 	[[nodiscard]] int to_int() const noexcept;
 
+	[[nodiscard]] uint32_t get_hash() const noexcept;
+
 	// format string
 	// format rule: fmtlib @ https://github.com/fmtlib/fmt
 	template<typename...Args>
@@ -238,6 +240,14 @@ private:
 private:
 
 	std::u16string_view _str;
+};
+
+struct sv_hasher
+{
+	inline uint32_t operator()(string_view sv)
+	{
+		return sv.get_hash();
+	}
 };
 
 namespace literal

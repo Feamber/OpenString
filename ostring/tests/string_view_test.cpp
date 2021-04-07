@@ -1,5 +1,6 @@
 ﻿
 #include <gtest/gtest.h>
+
 #include "ostring/osv.h"
 #include "ostring/ostr.h"
 
@@ -394,6 +395,15 @@ namespace osv {
 				++ind;
 			}
 		}
+	}
+
+	TEST(osv, hash)
+	{
+		using namespace ostr;
+		using namespace ostr::literal;
+		EXPECT_EQ(u""_o.get_hash(), 0);
+		EXPECT_EQ(u"stack-overflow"_o.get_hash(), 0x335CC04A);
+		EXPECT_EQ(sv_hasher{}(u"stack-overflow"_o), 0x335CC04A);
 	}
 
 }
