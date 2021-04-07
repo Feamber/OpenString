@@ -1,4 +1,7 @@
 #pragma once
+
+// UNUSED!
+
 #include <vector>
 #include <string>
 #include <string_view>
@@ -53,16 +56,6 @@ namespace ofmt {
 
 	template<typename T>
 	bool to_string(T&& arg, std::u16string_view param, std::u16string& out) = delete;
-
-	/*template<typename T>
-	inline bool to_string(T&& arg, std::u16string_view param, std::u16string& out)
-	{
-		using base_type = char_base_t<T>;
-		static_assert(is_char_type<base_type>::value);
-		std::basic_string_view<base_type> sv(arg);
-		out.append(sv.cbegin(), sv.cend());
-		return true;
-	}*/
 
 	template <class T, class Traits>
 	inline bool to_string(std::basic_string_view<T, Traits>&& arg, std::u16string_view param, std::u16string& out)
