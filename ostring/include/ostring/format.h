@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include <functional>
 
 #include <ostring/osv.h>
 #include "definitions.h"
@@ -125,9 +124,13 @@ namespace ofmt {
 	{
 		if (index != 0) return;
 
-		// for performance
-		static std::u16string str;
-		str.clear();
+		// TODO: performance hit here when construct string
+		//	|	|	|	|	|	|	|	|
+		//	v	v	v	v	v	v	v	v
+		std::u16string str;
+		//	^	^	^	^	^	^	^	^
+		//	|	|	|	|	|	|	|	|
+		// TODO: performance hit here when construct string
 
 		to_string(std::forward<Arg0>(a0), param, str);
 
@@ -172,9 +175,13 @@ namespace ofmt {
 
 		size_t prev_holder = 0;
 
-		// for performance
-		static std::u16string ans;
-		ans.clear();
+		// TODO: performance hit here when construct string
+		//	|	|	|	|	|	|	|	|
+		//	v	v	v	v	v	v	v	v
+		std::u16string ans;
+		//	^	^	^	^	^	^	^	^
+		//	|	|	|	|	|	|	|	|
+		// TODO: performance hit here when construct string
 		
 		for (size_t i = 0; i < fmt.size(); ++i)
 		{
@@ -194,7 +201,7 @@ namespace ofmt {
 				size_t param_colon = SIZE_MAX;
 				int alignment = 0;
 				
-				for (i; i < fmt.size(); ++i)
+				for (; i < fmt.size(); ++i)
 				{
 					c = fmt.data()[i];
 					if (helper::character::is_number(c))
@@ -215,7 +222,7 @@ namespace ofmt {
 						{
 							++i;
 						}
-						for (i; i < fmt.size(); ++i)
+						for (; i < fmt.size(); ++i)
 						{
 							c = fmt.data()[i];
 							if (helper::character::is_number(c))
@@ -233,7 +240,7 @@ namespace ofmt {
 					if (c == u':')
 					{
 						param_colon = i;
-						for (i; i < fmt.size(); ++i)
+						for (; i < fmt.size(); ++i)
 						{
 							if (fmt.data()[i] == u'}')
 							{

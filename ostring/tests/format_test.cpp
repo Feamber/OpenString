@@ -33,15 +33,6 @@ TEST(format, exec)
 		std::chrono::duration<float> delta = t1 - t0;
 		std::cout << delta.count() << std::endl;
 	}
-	{
-		auto t0 = std::chrono::system_clock::now();
-		for (int i = 0; i < 100000; ++i) {
-			std::u16string str(1, (char)i);
-		}
-		auto t1 = std::chrono::system_clock::now();
-		std::chrono::duration<float> delta = t1 - t0;
-		std::cout << delta.count() << std::endl;
-	}
 }
 
 TEST(format, no_param)
@@ -77,7 +68,7 @@ TEST(format, one_param)
 	}
 	{
 		const char16_t* c_str = u"你好𪚥";
-		EXPECT_TRUE(ofmt::format(u"align{0}ment", u"你好𪚥"sv) == u"align你好𪚥ment"sv);
+		EXPECT_TRUE(ofmt::format(u"align{0}ment", c_str) == u"align你好𪚥ment"sv);
 	}
 }
 

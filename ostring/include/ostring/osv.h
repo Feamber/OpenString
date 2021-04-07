@@ -90,7 +90,6 @@ public:
 		raw_const_it _begin;
 		raw_const_it _end;
 		codepoint _cp;
-		size_t _unicode_index;
 		small_size_t _len;
 
 	};

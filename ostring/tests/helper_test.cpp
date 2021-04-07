@@ -1,5 +1,6 @@
 
 #include <gtest/gtest.h>
+#include <string_view>
 
 #include "ostring/types.h"
 #include "ostring/helpers.h"
@@ -167,3 +168,14 @@ TEST(helper, convert_utf8_to_utf32)
 	}
 }
 
+TEST(helper, crc32)
+{
+	using namespace ostr::helper::hash;
+	using namespace std::literals;
+
+	constexpr uint32_t hc = hash_crc32("stack-overflow"sv);
+	EXPECT_EQ(hc, 0x335CC04A);
+	EXPECT_EQ(hash_crc32(u"stack-overflow"sv), 0x335CC04A);
+	const char* str = "stack-overflow";
+	EXPECT_EQ(hash_crc32(std::string_view(str)), 0x335CC04A);
+}
