@@ -244,7 +244,7 @@ private:
 
 struct sv_hasher
 {
-	inline uint32_t operator()(string_view sv)
+	inline uint32_t operator()(string_view sv) const
 	{
 		return sv.get_hash();
 	}
