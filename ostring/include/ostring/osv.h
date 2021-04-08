@@ -209,7 +209,10 @@ public:
 
 	[[nodiscard]] int to_int() const noexcept;
 
-	[[nodiscard]] uint32_t get_hash() const noexcept;
+	[[nodiscard]] constexpr uint32_t get_hash() const noexcept
+	{
+		return helper::hash::hash_crc32(_str);
+	}
 
 	// format string
 	// format rule: fmtlib @ https://github.com/fmtlib/fmt

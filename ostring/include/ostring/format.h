@@ -9,6 +9,8 @@
 #include <ostring/osv.h>
 #include "definitions.h"
 
+#include <assert.h>
+
 _NS_OSTR_BEGIN
 
 namespace ofmt {
@@ -175,6 +177,8 @@ namespace ofmt {
 		//	^	^	^	^	^	^	^	^
 		//	|	|	|	|	|	|	|	|
 		// TODO: performance hit here when construct string
+
+		int auto_index = -1;
 		
 		for (size_t i = 0; i < fmt.size(); ++i)
 		{
@@ -189,6 +193,10 @@ namespace ofmt {
 					prev_holder = i + 1;
 					continue;
 				}
+				if (fmt.data()[i] == u'}')
+				{
+					++auto_index;
+				}
 				ans.append(fmt.substr(prev_holder, i - prev_holder - 1));
 				size_t index = 0;
 				size_t param_colon = SIZE_MAX;
@@ -199,6 +207,7 @@ namespace ofmt {
 					c = fmt.data()[i];
 					if (helper::character::is_number(c))
 					{
+						assert(auto_index == -1 && "auto index not allowed when using manual index.");
 						index = index * 10 + helper::character::to_number(c);
 						continue;
 					}
@@ -245,7 +254,7 @@ namespace ofmt {
 					if (c == u'}')
 					{
 						to_string_index(
-							index,
+							(auto_index == -1) ? index : auto_index,
 							alignment,
 							ans,
 							(param_colon == SIZE_MAX) ? u"" : fmt.substr(param_colon, i - param_colon),
@@ -256,7 +265,7 @@ namespace ofmt {
 					}
 					else
 					{
-						// ERROR!
+						assert(false && "unknown format.");
 					}
 				}
 					

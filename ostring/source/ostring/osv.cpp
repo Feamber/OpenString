@@ -140,11 +140,6 @@ int string_view::to_int() const noexcept
 	return value;
 }
 
-uint32_t string_view::get_hash() const noexcept
-{
-	return helper::hash::hash_crc32(_str);
-}
-
 size_t string_view::position_codepoint_to_index(size_t codepoint_count_to_iterator) const noexcept
 {
 	auto from_it = helper::string::codepoint_count_to_iterator(_str.cbegin(), codepoint_count_to_iterator, _str.cend());

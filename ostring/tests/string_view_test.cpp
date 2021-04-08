@@ -404,6 +404,9 @@ namespace osv {
 		EXPECT_EQ(u""_o.get_hash(), 0);
 		EXPECT_EQ(u"stack-overflow"_o.get_hash(), 0x335CC04A);
 		EXPECT_EQ(sv_hasher{}(u"stack-overflow"_o), 0x335CC04A);
+
+		constexpr uint32_t h = u"stack-overflow"_o.get_hash();
+		EXPECT_EQ(h, 0x335CC04A);
 	}
 
 }
