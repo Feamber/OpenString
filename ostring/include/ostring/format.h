@@ -1,13 +1,11 @@
 #pragma once
 
-// UNUSED!
-
 #include <vector>
 #include <string>
 #include <string_view>
 
-#include <ostring/osv.h>
 #include "definitions.h"
+#include "helpers.h"
 
 #include <assert.h>
 
@@ -67,12 +65,13 @@ namespace ofmt {
 	}
 
 	template <class T, size_t N>
-	using cstr_arr = T(&)[N];
+	using cstr_arr = const T(&)[N];
 
 	template <class T, size_t N>
 	inline bool to_string(cstr_arr<T, N>&& arg, std::u16string_view param, std::u16string& out)
 	{
-		out.append(arg);
+		std::basic_string_view<T> sv(arg);
+		out.append(sv.cbegin(), sv.cend());
 		return true;
 	}
 
@@ -166,8 +165,6 @@ namespace ofmt {
 	template<typename...Args>
 	inline std::u16string format(std::u16string_view fmt, Args&&...args)
 	{
-		using namespace ostr::literal;
-
 		size_t prev_holder = 0;
 
 		// TODO: performance hit here when construct string
@@ -205,7 +202,7 @@ namespace ofmt {
 				for (; i < fmt.size(); ++i)
 				{
 					c = fmt.data()[i];
-					if (helper::character::is_number(c))
+					if (ostr::helper::character::is_number(c))
 					{
 						assert(auto_index == -1 && "auto index not allowed when using manual index.");
 						index = index * 10 + helper::character::to_number(c);

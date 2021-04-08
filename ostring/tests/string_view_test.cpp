@@ -397,6 +397,30 @@ namespace osv {
 		}
 	}
 
+	TEST(osv, format)
+	{
+		using namespace ostr;
+		using namespace ostr::literal;
+
+		{
+			string str = u"123{}1234"_o.format(u"a");
+			EXPECT_TRUE(str == "123a1234");
+		}
+		{
+			string str = u"123{1}12{0}34"_o.format(123, u"a");
+			EXPECT_TRUE(str == "123a1212334");
+		}
+		{
+			string str = u"123{2}12{1}34"_o.format(u"a"_o, 123, u"b");
+			EXPECT_TRUE(str == "123b1212334");
+		}
+		{
+			string str = u"我{3}😘{0}れC{2}{3}♂"_o.format("a", u"o", u"™", u"™C𪚥");
+			EXPECT_TRUE(str == u"我™C𪚥😘aれC™™C𪚥♂");
+			EXPECT_EQ(13, str.length());
+		}
+	}
+
 	TEST(osv, hash)
 	{
 		using namespace ostr;

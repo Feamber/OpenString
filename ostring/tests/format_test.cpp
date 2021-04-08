@@ -8,6 +8,7 @@
 #include <iostream>
 #include <array>
 #include "fmt/format.h"
+#include "ostring/format.h"
 
 TEST(format, exec)
 {

@@ -3,10 +3,10 @@
 #include <string>
 #include <string_view>
 #include <algorithm>
+
+#include "format.h"
 #include "helpers.h"
 #include "osv.h"
-
-// TODO: move impl to cpp
 
 _NS_OSTR_BEGIN
 
@@ -240,7 +240,8 @@ public:
 	template<typename...Args>
 	[[nodiscard]] string format(Args&&...args) const
 	{
-		return fmt::format(_str.c_str(), go_str(std::forward<Args>(args))...);
+		// return fmt::format(_str.c_str(), go_str(std::forward<Args>(args))...);
+		return ofmt::format(_str.c_str(), std::forward<Args>(args)...);
 	}
 
 	string& trim_start();
@@ -304,6 +305,15 @@ private:
 	size_t _surrogate_pair_count = 0;
 
 };
+
+namespace ofmt {
+	template <>
+	inline bool to_string<string>(string&& arg, std::u16string_view param, std::u16string& out)
+	{
+		out.append(arg.raw());
+		return true;
+	}
+}
 
 _NS_OSTR_END
 

@@ -5,8 +5,10 @@
 #include <iterator> // For std::forward_iterator_tag
 #include <cstddef>  // For std::ptrdiff_t
 #include "fmt/format.h"
+
 #include "definitions.h"
 #include "types.h"
+#include "format.h"
 #include "helpers.h"
 #include "coder.h"
 
@@ -219,7 +221,8 @@ public:
 	template<typename...Args>
 	[[nodiscard]] std::u16string format(Args&&...args) const
 	{
-		return fmt::format(_str, std::forward<Args>(args)...);
+		// return fmt::format(_str, std::forward<Args>(args)...);
+		return ofmt::format(_str, std::forward<Args>(args)...);
 	}
 
 	[[nodiscard]] constexpr std::u16string_view raw() const noexcept
@@ -261,6 +264,15 @@ namespace literal
 	}
 }
 
+namespace ofmt {
+	template <>
+	inline bool to_string<string_view>(string_view&& arg, std::u16string_view param, std::u16string& out)
+	{
+		out.append(arg.raw());
+		return true;
+	}
+}
+
 _NS_OSTR_END 
 
 template<>
@@ -278,4 +290,3 @@ struct fmt::formatter<ostr::string_view, char16_t>
 		return fmt::format_to(ctx.out(), u"{}", sv.raw());
 	}
 };
-
