@@ -266,6 +266,45 @@ namespace helper
 			return ans;
 		}
 
+		template<typename T>
+		inline void from_int(int arg, std::basic_string<T>& out)
+		{
+			int i = std::abs(arg);
+			size_t size = (size_t)(floor(log10(i)) + 1) + (arg < 0 ? 1 : 0);
+			out.append(size, u'0');
+			if (arg < 0) {
+				--size;
+				out[size] = u'-';
+			}
+			for (int p = 0; p < size; ++p)
+			{
+				out[p] = (i % 10 + u'0');
+				i /= 10;
+			}
+			std::reverse(out.begin(), out.end());
+		}
+
+		template<typename T>
+		inline void from_float_round(float arg, std::basic_string<T>& out)
+		{
+			// TODO: use Schubfach algorithm to round float
+			// which implemented by dragon box
+			float n = std::abs(arg);
+			float i;
+			float f = modff(n, &i);
+			from_int((int)i, out);
+
+			out.push_back(u'.');
+
+			while (f > 0.01)
+			{
+				f *= 10;
+				float ip;
+				f = std::modff(f, &ip);
+				out.push_back((int)ip + u'0');
+			}
+		}
+
 		// calculate surrogate pair inside, only work for char16_t
 		template<typename _Iter, typename = ::std::enable_if<::std::is_same_v<::std::iterator_traits<_Iter>, char16_t>>>
 		inline size_t count_surrogate_pair(_Iter from, _Iter end)

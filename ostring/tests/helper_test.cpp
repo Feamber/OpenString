@@ -179,3 +179,12 @@ TEST(helper, crc32)
 	const char* str = "stack-overflow";
 	EXPECT_EQ(hash_crc32(std::string_view(str)), 0x335CC04A);
 }
+
+TEST(helper, from_float)
+{
+	using namespace ostr::helper::string;
+
+	std::string fstr;
+	from_float_round(3.141, fstr);
+	EXPECT_TRUE(fstr == "3.141");
+}

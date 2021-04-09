@@ -112,6 +112,13 @@ namespace ofmt {
 		return true;
 	}
 
+	template<>
+	inline bool to_string<float>(float&& arg, std::u16string_view param, std::u16string& out)
+	{
+		helper::string::from_float_round(arg, out);
+		return true;
+	}
+
 
 	template<typename Arg0, typename...Args>
 	inline void to_string_index(size_t index, int alignment, std::u16string& out, std::u16string_view param, Arg0&& a0)

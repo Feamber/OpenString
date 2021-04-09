@@ -28,7 +28,7 @@ TEST(format, exec)
 	{
 		auto t0 = std::chrono::system_clock::now();
 		for (int i = 0; i < 100000; ++i) {
-			std::u16string str = fmt::format(u"{{}}{0}}}{1}2"sv, -111, 115);
+			std::u16string str = fmt::format(u"{0}"sv, 3.14);
 		}
 		auto t1 = std::chrono::system_clock::now();
 		std::chrono::duration<float> delta = t1 - t0;

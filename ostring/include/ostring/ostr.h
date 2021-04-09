@@ -269,6 +269,11 @@ public:
 		return coder::convert_append(u8, _str);
 	}
 
+	[[nodiscard]] uint32_t get_hash() const noexcept
+	{
+		return to_sv().get_hash();
+	}
+
 private:
 
 	void calculate_surrogate();
