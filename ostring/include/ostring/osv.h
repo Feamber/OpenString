@@ -266,7 +266,7 @@ namespace literal
 
 namespace ofmt {
 	template <>
-	inline bool to_string<string_view>(string_view&& arg, std::u16string_view param, std::u16string& out)
+	inline bool to_string<string_view>(const string_view& arg, std::u16string_view param, std::u16string& out)
 	{
 		out.append(arg.raw());
 		return true;

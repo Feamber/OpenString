@@ -313,7 +313,7 @@ private:
 
 namespace ofmt {
 	template <>
-	inline bool to_string<string>(string&& arg, std::u16string_view param, std::u16string& out)
+	inline bool to_string<string>(const string& arg, std::u16string_view param, std::u16string& out)
 	{
 		out.append(arg.raw());
 		return true;

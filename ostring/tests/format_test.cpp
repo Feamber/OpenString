@@ -147,14 +147,15 @@ TEST(format, multi_param_auto)
 
 	// c_str
 	{
-		const char* c_str1 = "123";
+		int i1 = 123;
+		const int& ri1 = i1;
 		const char16_t* c_str2 = u"你好𪚥";
-		EXPECT_TRUE(ofmt::format(u"对{}齐{}", c_str1, c_str2) == u"对123齐你好𪚥"sv);
+		EXPECT_TRUE(ofmt::format(u"对{}齐{}", ri1, c_str2) == u"对123齐你好𪚥"sv);
 	}
 	{
 		const wchar_t* c_str1 = L"你1";
-		const char* c_str2 = "123";
-		EXPECT_TRUE(ofmt::format(u"𪚥♂{}{}😁", c_str2, c_str1) == u"𪚥♂123你1😁"sv);
+		float f2 = 3.14;
+		EXPECT_TRUE(ofmt::format(u"𪚥♂{}{}😁", f2, c_str1) == u"𪚥♂3.14你1😁"sv);
 	}
 	{
 		const char16_t* c_str1 = u"你好𪚥";

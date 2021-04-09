@@ -269,6 +269,12 @@ namespace helper
 		template<typename T>
 		inline void from_int(int arg, std::basic_string<T>& out)
 		{
+			out.clear();
+			if (arg == 0)
+			{
+				out.append(1, u'0');
+				return;
+			}
 			int i = std::abs(arg);
 			size_t size = (size_t)(floor(log10(i)) + 1) + (arg < 0 ? 1 : 0);
 			out.append(size, u'0');
@@ -287,6 +293,7 @@ namespace helper
 		template<typename T>
 		inline void from_float_round(float arg, std::basic_string<T>& out)
 		{
+			out.clear();
 			// TODO: use Schubfach algorithm to round float
 			// which implemented by dragon box
 			float n = std::abs(arg);
