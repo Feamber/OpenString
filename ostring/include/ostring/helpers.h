@@ -319,10 +319,12 @@ namespace helper
 			size_t surrogate_pair_count = 0;
 			while (from < end)
 			{
-				if (from < (end - 1) && helper::codepoint::is_surrogate_pair(from[0], from[1]))
-				{
-					++surrogate_pair_count;
-					++from;
+				if(helper::codepoint::is_lead_surrogate(*from)){
+					if (from < (end - 1) && helper::codepoint::is_trail_surrogate(from[1]))
+					{
+						++surrogate_pair_count;
+						++from;
+					}
 				}
 				++from;
 			}

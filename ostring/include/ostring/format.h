@@ -14,47 +14,6 @@ _NS_OSTR_BEGIN
 namespace ofmt {
 
 	template<typename T>
-	struct is_char_type : std::false_type {};
-	template<>
-	struct is_char_type<char> : std::true_type {};
-#ifdef __cpp_lib_char8_t
-	template<>
-	struct _is_char_type<char8_t> : std::true_type {};
-#endif // __cpp_lib_char8_t
-	template<>
-	struct is_char_type<char16_t> : std::true_type {};
-	template<>
-	struct is_char_type<char32_t> : std::true_type {};
-	template<>
-	struct is_char_type<wchar_t> : std::true_type {};
-	template<typename T>
-	struct sv_trait 
-	{
-		using type = T;
-	};
-	template <class T, class Traits, class Alloc>
-	struct sv_trait<std::basic_string<T, Traits, Alloc>>
-	{
-		using type = T;
-	};
-	template <class T, class Traits>
-	struct sv_trait<std::basic_string_view<T, Traits>>
-	{
-		using type = T;
-	};
-
-	template<typename T>
-	using char_base_t =
-		std::remove_cv_t<
-		std::remove_all_extents_t<
-		std::remove_reference_t<
-		std::remove_pointer_t<
-		typename sv_trait<
-		T>::type>>>>;
-
-	using a = char_base_t<const char(&)[5]>;
-
-	template<typename T>
 	bool to_string(const T& arg, std::u16string_view param, std::u16string& out) = delete;
 
 	template <class T, class Traits>
@@ -64,11 +23,18 @@ namespace ofmt {
 		return true;
 	}
 
+	template <class T, class Traits>
+	inline bool to_string(const std::basic_string<T, Traits>& arg, std::u16string_view param, std::u16string& out)
+	{
+		out.append(arg.cbegin(), arg.cend());
+		return true;
+	}
+
 	template <class T, size_t N>
 	using cstr_arr = const T(&)[N];
 
 	template <class T, size_t N>
-	inline bool to_string(const cstr_arr<T, N>& arg, std::u16string_view param, std::u16string& out)
+	inline bool to_string(cstr_arr<T, N>& arg, std::u16string_view param, std::u16string& out)
 	{
 		std::basic_string_view<T> sv(arg);
 		out.append(sv.cbegin(), sv.cend());
@@ -79,7 +45,7 @@ namespace ofmt {
 	using cstr_ptr = const T*&;
 
 	template <typename T>
-	inline bool to_string(const cstr_ptr<T>& arg, std::u16string_view param, std::u16string& out)
+	inline bool to_string(cstr_ptr<T>& arg, std::u16string_view param, std::u16string& out)
 	{
 		std::basic_string_view<T> sv(arg);
 		out.append(sv.cbegin(), sv.cend());
@@ -121,7 +87,7 @@ namespace ofmt {
 		//	|	|	|	|	|	|	|	|
 		// TODO: performance hit here when construct string
 
-		to_string(std::forward<Arg0>(a0), param, str);
+		to_string(a0, param, str);
 
 		size_t alignment_abs = std::abs(alignment);
 

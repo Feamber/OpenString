@@ -102,6 +102,13 @@ TEST(format, multi_param_manual)
 		const char16_t* c_str = u"你好𪚥";
 		EXPECT_TRUE(ofmt::format(u"align{0}ment{0}", c_str) == u"align你好𪚥ment你好𪚥"sv);
 	}
+
+	// std::string
+	{
+		std::string str1 = "123";
+		std::wstring str2 = L"你1";
+		EXPECT_TRUE(ofmt::format(u"对{0}齐{1}", str1, str2) == u"对123齐你1"sv);
+	}
 }
 
 TEST(format, one_param_auto)

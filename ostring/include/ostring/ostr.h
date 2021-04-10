@@ -20,32 +20,14 @@ public:
 	string& operator=(string&&) = default;
 	string& operator=(const string&) = default;
 
-	template<typename T, size_t N>
-	string(const T arr[N])
-	{
-		using ut = std::make_unsigned_t< T >;
-		using up = std::add_pointer_t< std::add_const_t< ut > >;
-		std::basic_string_view<ut> sv(reinterpret_cast< up >(arr), N);
-		_str = std::u16string(sv.cbegin(), sv.cend());
-		calculate_surrogate();
-	}
-
 	template<typename T>
-	string(const T* src)
+	string(const T* src, size_t len = SIZE_MAX)
 	{
 		using ut = std::make_unsigned_t< T >;
 		using up = std::add_pointer_t< std::add_const_t< ut > >;
-		std::basic_string_view<ut> sv(reinterpret_cast<up>(src));
-		_str = std::u16string(sv.cbegin(), sv.cend());
-		calculate_surrogate();
-	}
-
-	template<typename T>
-	string(const T* src, size_t len)
-	{
-		using ut = std::make_unsigned_t< T >;
-		using up = std::add_pointer_t< std::add_const_t< ut > >;
-		std::basic_string_view<ut> sv(reinterpret_cast<up>(src), len);
+		std::basic_string_view<ut> sv((up)(src));
+		if(len != SIZE_MAX)
+			sv.substr(0, len);
 		_str = std::u16string(sv.cbegin(), sv.cend());
 		calculate_surrogate();
 	}
