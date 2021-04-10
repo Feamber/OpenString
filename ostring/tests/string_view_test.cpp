@@ -416,7 +416,7 @@ namespace osv {
 		}
 		{
 			string str = u"我{3}😘{0}れC{2}{3}♂"_o.format("a", u"o", u"™", u"™C𪚥");
-			EXPECT_TRUE(str == u"我™C𪚥😘aれC™™C𪚥♂");
+			EXPECT_TRUE(str == u"我™C𪚥😘aれC™™C𪚥♂"_o);
 			EXPECT_EQ(13, str.length());
 		}
 	}

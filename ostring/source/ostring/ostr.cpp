@@ -63,14 +63,12 @@ size_t string::last_index_of(const string_view& substr, size_t from, size_t leng
 
 bool string::split(const string_view& splitter, string_view* lhs, string_view* rhs) const
 {
-	string_view sv = *this;
-	return sv.split(splitter, lhs, rhs);
+	return to_sv().split(splitter, lhs, rhs);
 }
 
 size_t string::split(const string_view& splitter, std::vector<string_view>& str) const
 {
-	string_view sv = *this;
-	return sv.split(splitter, str);
+	return to_sv().split(splitter, str);
 }
 
 string& string::replace_origin(size_t from, size_t count, const string_view& dest, case_sensitivity cs)

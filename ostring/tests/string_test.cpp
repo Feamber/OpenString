@@ -267,12 +267,12 @@ TEST(ostr, replace)
 	{
 		string str(u"我😘れC♂");
 
-		EXPECT_TRUE(str.replace_copy(u"我😘"_o, u"♂♂♂♂♂") == u"♂♂♂♂♂れC♂");
+		EXPECT_TRUE(str.replace_copy(u"我😘"_o, u"♂♂♂♂♂") == u"♂♂♂♂♂れC♂"_o);
 	}
 	{
 		string str(u"我😘れC♂");
 
-		EXPECT_TRUE(str.replace_copy(u"我れ"_o, u"33") == u"我😘れC♂");
+		EXPECT_TRUE(str.replace_copy(u"我れ"_o, u"33") == u"我😘れC♂"_o);
 	}
 }
 
@@ -303,7 +303,7 @@ TEST(ostr, format)
 		string str_src1(u"我{3}😘{0}れC{2}♂");
 
 		string str = str_src1.format(u"a", u"o", u"™", u"™C𪚥");
-		EXPECT_TRUE(str == u"我™C𪚥😘aれC™♂");
+		EXPECT_TRUE(str == u"我™C𪚥😘aれC™♂"_o);
 		EXPECT_EQ(10, str.length());
 	}
 }

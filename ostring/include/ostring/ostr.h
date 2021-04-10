@@ -27,8 +27,8 @@ public:
 		using up = std::add_pointer_t< std::add_const_t< ut > >;
 		std::basic_string_view<ut> sv((up)(src));
 		if(len != SIZE_MAX)
-			sv.substr(0, len);
-		_str = std::u16string(sv.cbegin(), sv.cend());
+			sv = sv.substr(0, len);
+		_str.assign(sv.cbegin(), sv.cend());
 		calculate_surrogate();
 	}
 
@@ -68,7 +68,7 @@ public:
 	string(const std::basic_string<T>& str)
 	{
 		using ut = std::make_unsigned_t< T >;
-		_str = std::u16string((const ut*)str.data(), (const ut*)(str.data() + str.size()));
+		_str.assign((const ut*)str.data(), (const ut*)(str.data() + str.size()));
 		calculate_surrogate();
 	}
 
@@ -76,7 +76,7 @@ public:
 	string(std::basic_string_view<T> str)
 	{
 		using ut = std::make_unsigned_t< T >;
-		_str = std::u16string((const ut*)str.data(), (const ut*)(str.data() + str.size()));
+		_str.assign((const ut*)str.data(), (const ut*)(str.data() + str.size()));
 		calculate_surrogate();
 	}
 
@@ -292,6 +292,16 @@ private:
 	size_t _surrogate_pair_count = 0;
 
 };
+
+inline bool operator==(const ostr::string& lhs, const ostr::string_view& rhs)
+{
+	return lhs.to_sv() == rhs;
+}
+
+inline bool operator==(const ostr::string_view& lhs, const ostr::string& rhs)
+{
+	return rhs == lhs;
+}
 
 namespace ofmt {
 	template <>

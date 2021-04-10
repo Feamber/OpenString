@@ -317,13 +317,12 @@ namespace helper
 		inline size_t count_surrogate_pair(_Iter from, _Iter end)
 		{
 			size_t surrogate_pair_count = 0;
-			while (from < end)
-			{
-				if(helper::codepoint::is_lead_surrogate(*from)){
-					if (from < (end - 1) && helper::codepoint::is_trail_surrogate(from[1]))
-					{
+
+			while (from < end) {
+				if (helper::codepoint::is_lead_surrogate(*from)) {
+					++from;
+					if (from < end && helper::codepoint::is_trail_surrogate(*from)) {
 						++surrogate_pair_count;
-						++from;
 					}
 				}
 				++from;
@@ -335,13 +334,19 @@ namespace helper
 		template<typename _Iter, typename = std::enable_if<std::is_same_v<std::iterator_traits<_Iter>, char16_t>>>
 		inline _Iter codepoint_count_to_iterator(_Iter from, size_t count, _Iter end)
 		{
-			while (count > 0 && from != end)
+			while(count > 0 && from != end)
 			{
-				if (((end - from) > 1) && helper::codepoint::is_surrogate_pair(from[0], from[1]))
+				if(helper::codepoint::is_lead_surrogate(*from))
+				{
 					++from;
+					if(from < end)
+						if(!helper::codepoint::is_trail_surrogate(*from))
+							-- count;
+				}
 				--count;
 				++from;
 			}
+			
 			return from;
 		}
 

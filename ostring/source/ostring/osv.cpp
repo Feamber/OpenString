@@ -11,7 +11,7 @@ int string_view::compare(const string_view & rhs) const noexcept
 
 bool string_view::operator==(const string_view& rhs) const noexcept
 {
-	if (this->length() != rhs.length()) return false;
+	if (this->origin_length() != rhs.origin_length()) return false;
 	return this->compare(rhs) == 0;
 }
 
@@ -89,8 +89,8 @@ size_t string_view::last_index_of(string_view pattern, case_sensitivity cs) cons
 bool string_view::split(const string_view& splitter, string_view* lhs, string_view* rhs) const noexcept
 {
 	const size_t splitter_index = this->index_of(splitter);
-	if (splitter_index == SIZE_MAX) return false;
 	if (lhs) *lhs = this->substring(0, splitter_index);
+	if (splitter_index == SIZE_MAX) return false;
 	if (rhs) *rhs = this->substring(splitter_index + 1);
 	return true;
 }
